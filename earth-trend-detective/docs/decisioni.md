@@ -17,6 +17,7 @@ Stato: **decisa** = confermata; **provvisoria** = da rivedere dopo una verifica 
 | 2026-11-14 | Gemini via **Vertex AI** | decisa | allenamento per la certificazione Professional ML Engineer; configurazione da fare insieme prima del Blocco 2 | API key di AI Studio (più rapida) |
 | 2026-11-14 | Ordine di lavoro: **Blocco 1 (dati e statistica) prima di tutto**, scritto passo passo insieme all'autore | decisa | non dipende da frontend né da Gemini; è la parte con più rischio di errori scientifici | partire dagli agenti |
 | 2026-11-14 | Gestione ambiente e dipendenze con **uv** (`pyproject.toml` + `uv.lock`) | decisa | installazioni rapide, versioni bloccate e riproducibili per i giudici, dipendenze di sviluppo separate | pip + requirements.txt |
+| 2026-11-14 | Stagionalità: **Mann-Kendall stagionale** (Hirsch 1982) + pendenza di Sen stagionale | decisa | il test sulla serie mensile grezza perdeva il trend (Salerno p = 0,057 contro 4·10⁻⁸ sulle medie annuali); usa tutti i mesi e dà anche il trend di ogni mese ("quale stagione si scalda di più"); verificabile con `pymannkendall.seasonal_test` | solo medie annuali (tenute come controllo incrociato); anomalie + Hamed-Rao |
 
 ### Condizione per rivedere la fonte dati
 Decisione provvisoria: se un test mostra che AppEEARS, Giovanni o NASA POWER non si possono interrogare da codice per la Campania, o che la risoluzione è troppo grossolana per le zone scelte, cambiare fonte e aggiornare questa riga.
@@ -33,7 +34,7 @@ Decisione provvisoria: se un test mostra che AppEEARS, Giovanni o NASA POWER non
 
 ## Da decidere
 - [ ] Frontend: Streamlit oppure pagina web con grafici?
-- [ ] Test stagionale: Mann-Kendall stagionale o anomalie rispetto alla climatologia?
+
 - [ ] Coordinate esatte delle zone di campionamento (vedi docs/dati.md)
 - [ ] Deploy su Cloud Run: sì o solo in locale?
 - [ ] Demo: video da 30 secondi oppure 7 slide?

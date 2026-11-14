@@ -94,3 +94,6 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Un test è fallito al primo giro per una soglia scelta male nel test (non un bug del codice):
   con un outlier la regressione passa da 0,030 a 0,072, Theil-Sen da 0,0297 a 0,0317. Il test
   ora confronta gli spostamenti invece di usare un numero fisso.
+
+### Passo 5: stagionalità
+- Scelta la strada B: Mann-Kendall stagionale (vedi `decisioni.md`).
