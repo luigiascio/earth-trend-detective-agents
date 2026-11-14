@@ -82,3 +82,15 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Risultati (medie annuali 1981-2024): temperatura +0,35 °C/decennio a Napoli
   [0,26; 0,46], +0,29 a Salerno [0,20; 0,40], +0,36 ad Avellino [0,25; 0,48].
   Precipitazioni: tutti gli intervalli contengono lo zero.
+- Aggiunta a `docs/statistica.md` una spiegazione semplice con un esempio di 6 anni fatto a mano
+  (S, p-value con le "carte", pendenze, intervallo) e 5 regole di interpretazione.
+
+### Passo 4: test automatici
+- `tests/test_mann_kendall.py`, `tests/test_theil_sen.py`, `tests/test_power.py`: **39 test**,
+  tutti passano in circa 3 s (`uv run pytest`). Configurazione pytest in `pyproject.toml`.
+- Coprono: esempio fatto a mano, serie troppo corte, NaN, serie costanti, tasso di falsi
+  positivi su rumore puro (< 10% con alpha 0,05), confronto con pymannkendall e scipy su serie
+  con pareggi, resistenza agli outlier, schema del lettore, cache senza rete (`monkeypatch`).
+- Un test è fallito al primo giro per una soglia scelta male nel test (non un bug del codice):
+  con un outlier la regressione passa da 0,030 a 0,072, Theil-Sen da 0,0297 a 0,0317. Il test
+  ora confronta gli spostamenti invece di usare un numero fisso.

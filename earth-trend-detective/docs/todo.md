@@ -11,8 +11,8 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 - [ ] Decidere frontend, accesso a Gemini, regione (docs/decisioni.md)
 
 ## Blocco 1: dati e statistica (nessun LLM)
-- [ ] Download e pulizia di una variabile per una regione (NASA POWER)
-- [ ] Mann-Kendall + Theil-Sen + intervallo di confidenza, con test
+- [x] Download e pulizia di una variabile per una regione (NASA POWER)
+- [x] Mann-Kendall + Theil-Sen + intervallo di confidenza, con test (39 test)
 - [ ] Gestione di stagionalità e dati mancanti
 - [ ] Grafico della serie con retta di trend
 
