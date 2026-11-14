@@ -69,3 +69,16 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   trend: confrontare gennaio con luglio non dice nulla sul riscaldamento. Motiva il passo 5
   (anomalie o Mann-Kendall stagionale).
 - Precipitazioni: nessun trend significativo in nessuna cella, come previsto.
+
+### Passo 3b: Theil-Sen
+- `src/stats/theil_sen.py`: `pairwise_slopes` scritta dall'autore. Prima versione con
+  `np.empty((n, n))`: le celle non riempite contenevano valori spazzatura che sarebbero finiti
+  nella mediana. Corretta con una lista (`append`) e un controllo sulla lunghezza degli input.
+- Aggiunti mediana delle pendenze, intercetta e intervallo di confidenza di Sen (1968), che
+  riusa `mann_kendall_variance`. Tempi espliciti (anni) invece delle posizioni: la pendenza
+  ha unità reali e gli anni mancanti sono gestiti.
+- Confronto con `scipy.stats.theilslopes` su 3 celle × 2 variabili (medie annuali):
+  pendenza, intercetta e intervallo **identici in tutti i casi**.
+- Risultati (medie annuali 1981-2024): temperatura +0,35 °C/decennio a Napoli
+  [0,26; 0,46], +0,29 a Salerno [0,20; 0,40], +0,36 ad Avellino [0,25; 0,48].
+  Precipitazioni: tutti gli intervalli contengono lo zero.
