@@ -97,3 +97,18 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 
 ### Passo 5: stagionalità
 - Scelta la strada B: Mann-Kendall stagionale (vedi `decisioni.md`).
+- Scritto `src/stats/seasonal.py`: `seasonal_mann_kendall` (S e varianza calcolati dentro ogni
+  mese e sommati, riusando `mann_kendall_s` e `mann_kendall_variance`), `seasonal_sen_slope`
+  (mediana delle pendenze tra stessi mesi, con intervallo di confidenza) e `trends_by_month`
+  (Mann-Kendall e Theil-Sen per ogni singolo mese).
+- Confronto con `pymannkendall.seasonal_test` e `seasonal_sens_slope` sui dati veri
+  (3 celle × 2 variabili): **identici**.
+- Corretto il calcolo del p-value in entrambi i moduli: `2 * (1 - norm.cdf(z))` dava **0,0** per
+  Napoli (arrotondamento in virgola mobile); ora `2 * norm.sf(z)` dà 2,6·10⁻¹⁷.
+- `tests/test_seasonal.py`: 18 test, **57 test in totale, tutti passano**. Un test è fallito al
+  primo giro per parametri scelti male nel test; ora confronta z (stagionale 11,7 contro 2,1).
+- Risultati, temperatura 1981-2024, test stagionale: Napoli +0,375 °C/decennio [0,30; 0,46],
+  Salerno +0,32 [0,25; 0,40], Avellino +0,37 [0,28; 0,47], tutti p < 1e-14.
+  Precipitazioni: nessun trend in nessuna cella.
+- Per mese (Napoli): giugno, luglio, agosto e novembre circa +0,5 °C/decennio; gennaio +0,17
+  con intervallo che contiene lo zero. Da non affermare prima della correzione per test multipli.

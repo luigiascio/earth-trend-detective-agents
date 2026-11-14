@@ -71,7 +71,7 @@ def mann_kendall_test(values: np.ndarray, alpha: float = 0.05) -> MannKendallRes
     else:
         z = 0.0
 
-    p_value = float(2 * (1 - norm.cdf(abs(z))))
+    p_value = float(2 * norm.sf(abs(z)))  # sf = 1 - cdf, without rounding to 0
     significant = p_value < alpha
     if not significant:
         trend = "no trend"

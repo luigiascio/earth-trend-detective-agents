@@ -13,7 +13,9 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 ## Blocco 1: dati e statistica (nessun LLM)
 - [x] Download e pulizia di una variabile per una regione (NASA POWER)
 - [x] Mann-Kendall + Theil-Sen + intervallo di confidenza, con test (39 test)
-- [ ] Gestione di stagionalità e dati mancanti
+- [x] Gestione di stagionalità e dati mancanti (Mann-Kendall stagionale, NaN tolti e contati)
+- [ ] Correzione per test multipli (Benjamini-Hochberg) sui 12 trend mensili e sulle celle
+- [ ] Controllare l'autocorrelazione tra anni (Hamed-Rao sulle medie annuali come verifica)
 - [ ] Grafico della serie con retta di trend
 
 ## Blocco 2: agenti
