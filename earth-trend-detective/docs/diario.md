@@ -46,3 +46,12 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Nota: in `geometry.coordinates` l'ordine è GeoJSON, cioè **longitudine prima**.
 - Prova su Napoli: 1056 righe (528 mesi × 2 variabili), mese 13 scartato, nessun NaN,
   1981-01 → 2024-12.
+
+### Passo 2: download con cache e nuovi tentativi
+- Aggiunta `fetch_power_monthly(lat, lon, start_year, end_year, cache_file)` in
+  `src/data/power.py`: legge dalla cache se il file esiste, altrimenti scarica con `requests`;
+  ritenta solo su timeout ed errori di connessione (backoff 1, 2, 4 s), non sugli errori HTTP.
+- Separata apposta da `parse_power_monthly`: il download fa I/O, il lettore resta puro e
+  testabile senza internet.
+- Prova: cache su Napoli in 0,00 s; download nuovo (40.25, 15.25, 2020-2024) in 4,9 s,
+  120 righe; seconda chiamata servita dalla cache in 0,01 s.
