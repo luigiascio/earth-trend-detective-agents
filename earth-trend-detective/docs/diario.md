@@ -33,3 +33,6 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - `uv init --bare` lanciato per errore nella cartella superiore: `pyproject.toml` spostato in
   `earth-trend-detective/` e rinominato il progetto.
 - Creato questo diario.
+- Aggiunte le dipendenze con `uv add` (numpy, pandas, scipy, requests, pydantic, matplotlib)
+  e `uv add --dev` (pytest, pymannkendall). Ambiente verificato: Python 3.11.9,
+  pandas 3.1.1, numpy 2.4.6. `pyproject.toml` e `uv.lock` su git. **Passo 0 completato.**
