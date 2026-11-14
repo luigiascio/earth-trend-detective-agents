@@ -86,7 +86,19 @@ Risposta mostrata all'utente (solo se il guardrail passa)
   sotto-agente usato come "strumento", la documentazione consiglia `mode='single_turn'` sul
   sotto-agente più `sub_agents`, invece di `AgentTool(agent=...)`. In ADK 2.0 i workflow basati
   su `BaseAgent` sono superati dai workflow a grafo (https://adk.dev/graphs/): DA VALUTARE.
-- DA VERIFICARE: versione esatta di ADK, contenuto di `__init__.py` generato da `adk create`.
+- DA VERIFICARE: contenuto di `__init__.py` generato da `adk create`.
+
+### Configurazione verificata sul nostro progetto (2026-11-14)
+- Installato `google-adk` **2.14.1** (porta con sé `google-genai` 2.34.0).
+- Progetto Google Cloud: `earth-trend-detective-2026`, fatturazione attiva, API
+  `aiplatform.googleapis.com` attiva, credenziali ADC con quota project impostato.
+- **Località: `global`.** Su `us-central1` tutti i modelli provati rispondono 404.
+- **Modello: `gemini-3.8-flash`** (risponde su `global`; funzionano anche `gemini-3.5-flash` e
+  `gemini-3.1-flash-lite`). `gemini-flash-latest` e la serie 2.5 rispondono 404 "not found or
+  your project does not have access", anche se `gemini-2.5-flash` compare in `models.list()`:
+  la lista non garantisce l'accesso, va sempre fatta una chiamata di prova.
+- Prova minima (fuori da ADK): `genai.Client(vertexai=True, project=..., location="global")`
+  e `client.models.generate_content(model="gemini-3.8-flash", contents=...)`.
 
 ## Contratti (bozza)
 Definire in `src/contracts.py` con pydantic: `Plan`, `DataResult`, `TrendResult`,

@@ -125,3 +125,11 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   `GOOGLE_GENAI_USE_ENTERPRISE`, Vertex AI rinominato "Agent Platform". Riassunto in
   `docs/architettura.md`.
 - gcloud CLI non installato sul PC: da installare.
+- Configurato Google Cloud (autore): gcloud installato, progetto `earth-trend-detective-2026`
+  creato da terminale (l'ID `earth-trend-detective` era già preso da altri: gli ID sono unici
+  nel mondo), fatturazione collegata, API Vertex attiva, credenziali ADC.
+  Problema: il primo login ADC è fallito perché nella pagina di consenso non era spuntato il
+  permesso `cloud-platform`.
+- Installato `google-adk` 2.14.1 con uv.
+- Prima chiamata a Gemini via Vertex: 404 per `gemini-flash-latest`, serie 2.5 e regione
+  `us-central1`; **funziona `gemini-3.8-flash` su `global`**. Dettagli in `docs/architettura.md`.
