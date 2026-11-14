@@ -16,7 +16,7 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 - [x] Gestione di stagionalità e dati mancanti (Mann-Kendall stagionale, NaN tolti e contati)
 - [ ] Correzione per test multipli (Benjamini-Hochberg) sui 12 trend mensili e sulle celle
 - [ ] Controllare l'autocorrelazione tra anni (Hamed-Rao sulle medie annuali come verifica)
-- [ ] Grafico della serie con retta di trend
+- [x] Grafico della serie con retta di trend (src/viz/plots.py)
 
 ## Blocco 2: agenti
 - [ ] `src/contracts.py` con i modelli pydantic

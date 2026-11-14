@@ -112,3 +112,10 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   Precipitazioni: nessun trend in nessuna cella.
 - Per mese (Napoli): giugno, luglio, agosto e novembre circa +0,5 °C/decennio; gennaio +0,17
   con intervallo che contiene lo zero. Da non affermare prima della correzione per test multipli.
+
+### Passo 6: grafico
+- `src/viz/plots.py`: `plot_trend` disegna le medie annuali, la retta di trend (pendenza di Sen
+  stagionale, passante per anno e valore mediani) e la fascia dell'intervallo al 95%, con
+  etichetta diretta e fonte. Palette di riferimento delle linee guida dataviz.
+- Prova su Napoli: grafico leggibile, +0,38 °C/decennio [0,30; 0,46]. 1 test aggiunto
+  (58 in totale, tutti passano). **Blocco 1 completato.**
