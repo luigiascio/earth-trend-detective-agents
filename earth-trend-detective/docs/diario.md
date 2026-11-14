@@ -55,3 +55,17 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   testabile senza internet.
 - Prova: cache su Napoli in 0,00 s; download nuovo (40.25, 15.25, 2020-2024) in 4,9 s,
   120 righe; seconda chiamata servita dalla cache in 0,01 s.
+
+### Passo 3: Mann-Kendall
+- `src/stats/mann_kendall.py`: il calcolo di S (doppio ciclo sulle coppie) l'ha scritto
+  l'autore; aggiunti varianza con correzione per i pareggi, Z con correzione di continuità,
+  p-value bilaterale, tau di Kendall, gestione dei NaN e `InsufficientDataError` sotto
+  10 osservazioni.
+- Confronto con `pymannkendall.original_test` su 3 celle × 2 variabili × (medie annuali,
+  serie mensile): S, varianza, Z e p-value **identici in tutti i 12 casi**. 50 ms per 528 mesi.
+- **Scoperta importante:** la temperatura è fortemente significativa sulle medie annuali
+  (z ≈ 5,5-5,8, p < 1e-7 in tutte le celle), ma sulla serie mensile grezza diventa debole o
+  non significativa (Salerno p = 0,057, Avellino p = 0,055). Il ciclo delle stagioni copre il
+  trend: confrontare gennaio con luglio non dice nulla sul riscaldamento. Motiva il passo 5
+  (anomalie o Mann-Kendall stagionale).
+- Precipitazioni: nessun trend significativo in nessuna cella, come previsto.
