@@ -19,6 +19,7 @@ Ogni affermazione nella spiegazione finale deve essere verificata dal guardrail
 - @docs/guardrail.md: verifica "spiegazione contro numeri"
 - @docs/decisioni.md: registro delle scelte e dei motivi (aggiornalo!)
 - @docs/todo.md: stato dei lavori e priorità per la demo
+- docs/diario.md: diario cronologico di cosa è stato fatto (aggiornalo a ogni passo!)
 
 ## Vincoli
 - Tempo: 48 ore. Priorità: prototipo piccolo che funziona end to end, non completo.
@@ -41,6 +42,8 @@ Ogni affermazione nella spiegazione finale deve essere verificata dal guardrail
 - Funzioni statistiche pure, con test in `tests/`.
 - Dopo ogni scelta architetturale importante, aggiungi una riga a docs/decisioni.md.
 - Aggiorna docs/todo.md a fine di ogni blocco di lavoro.
+- Dopo ogni cambiamento: aggiungi una voce a docs/diario.md e fai un **commit** git
+  (messaggio breve in italiano, un commit per cambiamento logico).
 
 ## Come lavorare
 1. Prima di scrivere codice nuovo, leggi @docs/architettura.md e @docs/todo.md.

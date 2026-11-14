@@ -4,9 +4,10 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 
 ## Prima di iniziare
 - [ ] Leggere il Project Submission Guide e il Judging and Awards Guide ufficiali
-- [ ] Leggere le risorse della sfida e riportare i dataset in docs/dati.md
+- [x] Leggere le risorse della sfida e riportare i dataset in docs/dati.md
 - [ ] Verificare nella documentazione ufficiale le API attuali di Google ADK
-- [ ] Verificare l'API di NASA POWER (parametri, formato, limiti)
+- [x] Verificare l'API di NASA POWER (parametri, formato, limiti): vedi docs/dati.md
+- [ ] Decidere: 3 celle POWER oppure aggiungere MODIS LST (AppEEARS) o GPM IMERG per avere più zone
 - [ ] Decidere frontend, accesso a Gemini, regione (docs/decisioni.md)
 
 ## Blocco 1: dati e statistica (nessun LLM)
