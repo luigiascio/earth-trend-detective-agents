@@ -119,3 +119,9 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   etichetta diretta e fonte. Palette di riferimento delle linee guida dataviz.
 - Prova su Napoli: grafico leggibile, +0,38 °C/decennio [0,30; 0,46]. 1 test aggiunto
   (58 in totale, tutti passano). **Blocco 1 completato.**
+
+### Blocco 2: preparazione di Vertex AI
+- Letta la documentazione attuale di ADK (ora su adk.dev): nuovo nome della variabile
+  `GOOGLE_GENAI_USE_ENTERPRISE`, Vertex AI rinominato "Agent Platform". Riassunto in
+  `docs/architettura.md`.
+- gcloud CLI non installato sul PC: da installare.
