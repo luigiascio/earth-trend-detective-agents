@@ -2,8 +2,9 @@
 
 **NASA Space Apps Challenge 2026 · Challenge: _Be An Earth System Trend Detective!_**
 
-Ask a question in plain language, such as _"Is it getting warmer on the coast?"_ or
-_"Is it raining less inland since 2000?"_. Earth Trend Detective then:
+Ask a question in plain language about climate trends in **Italy**, such as _"Are the Alps
+warming faster than Sicily?"_ or _"Is it raining more in southern Italy?"_.
+Earth Trend Detective then:
 
 1. **selects** the variables, places and period that answer it (NASA POWER temperature and
    precipitation);
@@ -108,7 +109,22 @@ explanation and its placeholders.
 > These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded
 > through the NASA Earth Science/Applied Science Program. <https://power.larc.nasa.gov>
 
-The zones and their coordinates are defined in `src/agents/tools.py`.
+**13 sampling zones across Italy, one per climate area:** Aosta and Bolzano (Alps), Milano
+(Po Valley), Venezia and Genova (northern coasts), Firenze, Roma and L'Aquila (centre), Napoli,
+Bari and Cosenza (south), Palermo (Sicily) and Cagliari (Sardinia). Coordinates are in
+`src/agents/tools.py`. The 13 zones were checked to fall in 13 different MERRA-2 grid cells.
+
+## What it found
+
+Seasonal Mann-Kendall test and Sen slope, 1981-2024, 95% confidence intervals:
+
+- **Temperature is rising significantly in all 13 zones, but not at the same rate.** There is
+  a north-south gradient. The Alps and the Po Valley warm by about **+0.48 °C per decade**
+  (Aosta [0.37, 0.59], Milano [0.38, 0.58]); Sicily by **+0.22 °C per decade** (Palermo
+  [0.15, 0.28]). The intervals do not overlap, so the difference is supported by the data.
+- **Precipitation shows no significant trend in most zones.** It increases significantly in
+  Bolzano, L'Aquila, Bari and Cosenza. There is no significant decrease in any zone.
+- These are exploratory results: they are not corrected for multiple testing across zones.
 
 ## Run it
 
@@ -140,7 +156,7 @@ Other ways to run it:
 
 ```bash
 uv run adk web src/agents            # ADK developer UI, choose "detective"
-uv run pytest                        # 102 tests, no network and no LLM needed
+uv run pytest                        # 104 tests, no network and no LLM needed
 ```
 
 The model is `gemini-3.8-flash` on location `global` (`src/agents/nodes.py`).
@@ -174,7 +190,7 @@ output is checked by deterministic code before it is shown.
 pair-programming assistant:
 
 - **Decided by the author:** the challenge, the idea of an agent system with a numeric
-  guardrail, the region and the variables, and the main design decisions recorded in
+  guardrail, the area (first Campania, then Italy) and the variables, and the main design decisions recorded in
   `docs/decisioni.md`. These include the graph workflow, placeholders instead of numbers,
   the out-of-scope flag, continuing when one analysis fails, and planning every zone the user
   names even when two share a grid cell.
@@ -182,7 +198,7 @@ pair-programming assistant:
   was written by Claude Code under the author's direction, step by step, as a learning
   exercise. Some parts were written by the author: the data parser logic, the Mann-Kendall S
   statistic and the pairwise slopes. All code was reviewed and run by the author.
-- **Checks on AI-written code:** 102 automated tests; the statistics are cross-checked
+- **Checks on AI-written code:** 104 automated tests; the statistics are cross-checked
   against the independent `pymannkendall` package; the agents were tested end to end with
   real questions.
 
