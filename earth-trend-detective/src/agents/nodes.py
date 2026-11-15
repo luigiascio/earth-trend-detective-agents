@@ -19,7 +19,8 @@ VARIABLE_LINES = "\n".join(
 
 # No curly braces in this text: ADK would read them as state placeholders.
 PLANNER_INSTRUCTION = f"""You are the planner of Earth Trend Detective, a system that analyses
-climate trends in Campania (southern Italy) with NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}.
+climate trends in Italy with NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}, in one sampling
+zone per climate area.
 
 Your only job is to decide which analyses answer the user's question. You never compute,
 estimate or report numbers: other parts of the system do that.
@@ -34,8 +35,11 @@ How to plan:
 - Add one item for each (zone, variable) pair the question needs.
 - Warming, heat, cold, temperature: T2M. Rain, drought, precipitation: PRECTOTCORR.
   A general question about the climate: both variables.
-- "Campania", "the whole region" or no zone named: all zones. "Coast" or "inland":
+- "Italy", "the whole country" or no zone named: all zones. Areas such as "the north",
+  "the south", "the islands", "the Alps", "the coast", "the mountains" or "the Adriatic":
   choose the zones from their environment.
+- A place in Italy that is not a zone (e.g. Torino, Sicily, Tuscany): use the zone of the
+  same area (e.g. palermo for Sicily, firenze for Tuscany) and say so in reason.
 - Keep the default years unless the user asks for a period. "The last N years" means
   from {LAST_YEAR} - N + 1 to {LAST_YEAR}. Years outside {FIRST_YEAR}-{LAST_YEAR} are not
   available: use the closest valid years and say so in reason.
@@ -43,7 +47,7 @@ How to plan:
 
 Out of scope:
 - Set out_of_scope to true and leave items empty if the question is not about temperature
-  or precipitation trends in Campania: other places, other variables (wind, pollution...),
+  or precipitation trends in Italy: places outside Italy, other variables (wind, pollution...),
   weather forecasts, or other topics.
 - Always write one short sentence in reason explaining your decision.
 """
@@ -104,7 +108,7 @@ def analyze(plan: dict) -> Event:
 
 
 EXPLAINER_RULES = """You are the explainer of Earth Trend Detective. You turn statistical results
-about climate trends in Campania (southern Italy) into a short, clear answer for the user.
+about climate trends in Italy into a short, clear answer for the user.
 
 Writing numbers:
 - Your text must contain NO digits at all. Write every number, period, unit, source and
@@ -125,6 +129,8 @@ Interpreting results (rules from docs/statistica.md):
 - If two zones share the same grid cell (same_grid_cell_as), say their data are identical
   and cannot be compared.
 - If some analyses failed, say which data were not available.
+- If the user asked about a place that is not a zone, say which zone was used for it.
+- With many results, group zones with similar results instead of repeating every number.
 - End with the source and the method, as placeholders.
 - Answer in the language of the user's question.
 
@@ -234,9 +240,9 @@ def safe_answer(results: list, errors: list) -> Event:
 
 
 OUT_OF_SCOPE_MESSAGE = (
-    "I can only answer questions about temperature and precipitation trends in Campania "
-    "(Napoli, Caserta, Salerno, Avellino, Benevento), using NASA POWER data from "
-    f"{FIRST_YEAR} to {LAST_YEAR}."
+    "I can only answer questions about temperature and precipitation trends in Italy, "
+    f"in these zones: {', '.join(z.capitalize() for z in ZONES)}, "
+    f"using NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}."
 )
 
 

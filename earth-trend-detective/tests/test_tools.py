@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from src.agents import tools
-from src.agents.tools import analyze_trend
+from src.agents.tools import ZONES, analyze_trend
 
 
 def synthetic_payload(slope_per_year: float = 0.03) -> dict:
@@ -31,7 +31,7 @@ def fake_power(monkeypatch):
 @pytest.mark.parametrize(
     "kwargs, expected",
     [
-        ({"zone": "roma", "variable": "T2M"}, "Unknown zone"),
+        ({"zone": "paris", "variable": "T2M"}, "Unknown zone"),
         ({"zone": "napoli", "variable": "NDVI"}, "Unknown variable"),
         ({"zone": "napoli", "variable": "T2M", "start_year": 1970}, "Years must satisfy"),
         ({"zone": "napoli", "variable": "T2M", "end_year": 2030}, "Years must satisfy"),
@@ -60,7 +60,7 @@ def test_success_contains_the_numbers_from_the_statistics(fake_power):
     assert result["period"] == "1981-2024"
     assert result["alpha"] == 0.05
     assert result["source"] == "NASA POWER (MERRA2)"
-    assert result["same_grid_cell_as"] == "caserta"
+    assert result["same_grid_cell_as"] is None  # every zone has its own grid cell
 
 
 def test_years_filter_the_series(fake_power):
@@ -81,3 +81,17 @@ def test_download_failure_returns_an_error(monkeypatch):
     result = analyze_trend("napoli", "T2M")
     assert result["status"] == "error"
     assert "no network" in result["message"]
+
+
+def test_contract_zones_match_the_tool_zones():
+    """The planner's closed list (contracts.Zone) must be exactly the zones the tool knows."""
+    from typing import get_args
+
+    from src.contracts import Zone
+
+    assert set(get_args(Zone)) == set(ZONES)
+
+
+def test_zone_names_fit_the_placeholder_syntax():
+    """Zone names appear in placeholders [zone.variable.field]: lowercase letters only."""
+    assert all(name.isalpha() and name.islower() for name in ZONES)

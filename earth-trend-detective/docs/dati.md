@@ -75,3 +75,31 @@ Scaricare in `data/raw/` (ignorata da git) e salvare i dati puliti in `data/proc
 
 ## Citazioni (da riportare in interfaccia e README)
 Ogni dataset usato va citato con nome, ente e URL. L'elenco di **tutte** le risorse usate (dati, codice, testi, immagini, anche open source) va nel campo di riferimento del modulo di invio. Per ora: NASA POWER (NASA Langley Research Center), KNMI Climate Explorer (KNMI) per la verifica, e gli articoli sui metodi statistici.
+
+
+## Zone in Italia (2026-11-15)
+13 zone, una per area climatica (coordinate in `src/agents/tools.py`). Verifica: le serie T2M
+delle 13 zone sono tutte diverse tra loro, quindi nessuna coppia condivide una cella MERRA-2.
+Attenzione: le coordinate restituite dall'API sono quelle richieste, non il centro della cella;
+per sapere se due punti sono nella stessa cella bisogna confrontare le serie.
+
+Trend 1981-2024 (Mann-Kendall stagionale, pendenza di Sen per decennio, IC 95%):
+
+| Zona | T2M (°C/decennio) | PRECTOTCORR (mm/giorno/decennio) |
+| --- | --- | --- |
+| aosta | +0.481 [0.373; 0.589] | nessun trend |
+| milano | +0.481 [0.380; 0.575] | nessun trend |
+| firenze | +0.467 [0.374; 0.576] | nessun trend |
+| bolzano | +0.448 [0.342; 0.556] | +0.090 [0.027; 0.150] |
+| genova | +0.418 [0.338; 0.508] | nessun trend |
+| venezia | +0.405 [0.319; 0.490] | nessun trend |
+| roma | +0.400 [0.320; 0.486] | nessun trend |
+| aquila | +0.400 [0.300; 0.500] | +0.081 [0.006; 0.153] |
+| napoli | +0.375 [0.297; 0.462] | nessun trend |
+| bari | +0.339 [0.262; 0.419] | +0.067 [0.013; 0.122] |
+| cagliari | +0.311 [0.258; 0.369] | nessun trend |
+| cosenza | +0.232 [0.144; 0.316] | +0.161 [0.094; 0.230] |
+| palermo | +0.218 [0.152; 0.283] | +0.030 [0.000; 0.071], p ≈ 0.05 |
+
+Nessun test corretto per confronti multipli: da presentare come risultati esplorativi.
+Le zone campane precedenti (Caserta, Salerno, Avellino, Benevento) sono state tolte.

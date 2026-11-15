@@ -263,3 +263,17 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   l'autore e come è stato verificato il codice), bibliografia e software open source.
 - `README.md` nella radice del repository che rimanda al progetto.
 - Da aggiornare dopo l'estensione all'Italia (zone e risultati).
+
+### Estensione all'Italia
+- Calcolati prima i trend di 15 zone candidate fuori dall'app: gradiente nord-sud della
+  temperatura (Alpi e Pianura Padana circa +0.48 °C per decennio, Sicilia +0.22, intervalli
+  separati); pioggia in aumento significativo solo in alcune zone. Scelte 13 zone (tabella in
+  `docs/dati.md`), tutte in celle diverse (serie confrontate una per una).
+- Aggiornati `ZONES`, il contratto `Zone` (piano fino a 26 analisi), le istruzioni del
+  Pianificatore (aree come "il nord", "le Alpi"; una città non presente usa la zona della
+  stessa area e la Spiegazione lo dice), il messaggio di fuori ambito, l'app e i nuovi esempi.
+- Nuovi test: l'elenco chiuso del contratto coincide con `ZONES`; i nomi delle zone sono solo
+  lettere minuscole (servono nei segnaposti). **104 test, tutti passano.**
+- Prova con Gemini su 6 domande, tutte verificate al primo tentativo: "Alpi più veloci della
+  Sicilia" affermato correttamente (intervalli separati); nord Italia "non distinguibile";
+  Torino → Milano dichiarato; Parigi → fuori ambito.

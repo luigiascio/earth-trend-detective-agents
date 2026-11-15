@@ -31,10 +31,10 @@ from src.viz.plots import DARK, TREND_COLORS, plot_trend  # noqa: E402
 
 APP_NAME = "earth_trend_detective"
 EXAMPLES = [
-    "Is it getting warmer on the coast of Campania?",
-    "Are Napoli and Caserta warming at the same rate? And Salerno?",
-    "Is it raining less in Avellino over the last 30 years?",
-    "How have temperature and rainfall changed inland since 2000?",
+    "Are the Alps warming faster than Sicily?",
+    "Is it raining more in southern Italy?",
+    "Which zones of northern Italy are warming the most?",
+    "How has the climate changed in Napoli since 2000?",
 ]
 
 
@@ -247,8 +247,8 @@ with st.sidebar:
     st.header("Data")
     st.markdown(
         f"NASA POWER monthly data (MERRA-2), {FIRST_YEAR}-{LAST_YEAR}: air temperature at 2 m "
-        "and precipitation. Five zones in Campania, Italy. Napoli and Caserta, and Avellino and "
-        "Benevento, fall in the same grid cell: their data are identical."
+        f"and precipitation, in {len(ZONES)} zones across Italy, one per climate area: "
+        + ", ".join(z.capitalize() for z in ZONES) + "."
     )
     st.caption("Data: NASA Langley Research Center (LaRC) POWER Project, funded through the "
                "NASA Earth Science/Applied Science Program.")
@@ -257,7 +257,7 @@ with st.sidebar:
 
 st.title("Earth Trend Detective")
 st.markdown(
-    "Ask about **temperature or precipitation trends in Campania**. "
+    "Ask about **temperature or precipitation trends in Italy**. "
     "The AI plans and explains; the statistics are computed by code, "
     "and every sentence is checked against the numbers before you see it."
 )
@@ -278,7 +278,7 @@ for past in history:
     with st.chat_message("assistant"):
         render_run(past)
 
-prompt = st.chat_input("Ask about a trend in Campania (each question is answered on its own)")
+prompt = st.chat_input("Ask about a trend in Italy (each question is answered on its own)")
 question = clicked or (prompt.strip() if prompt else "")
 if question:
     with st.chat_message("user"):

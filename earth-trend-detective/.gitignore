@@ -29,3 +29,6 @@ Thumbs.db
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ADK local sessions (adk web)
+.adk/

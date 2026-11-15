@@ -6,15 +6,18 @@ from pydantic import BaseModel, Field
 
 # Closed lists: the LLM can only choose among these values.
 # They must match the keys used by src/agents/tools.py.
-Zone = Literal["napoli", "caserta", "salerno", "avellino", "benevento"]
+Zone = Literal[
+    "aosta", "bolzano", "milano", "venezia", "genova", "firenze", "roma", "aquila",
+    "napoli", "bari", "cosenza", "palermo", "cagliari",
+]
 Variable = Literal["T2M", "PRECTOTCORR"]
 
 
 class PlanItem(BaseModel):
-    """One analysis to run: a NASA POWER variable in a zone of Campania over a period."""
+    """One analysis to run: a NASA POWER variable in a zone of Italy over a period."""
 
     zone: Zone = Field(
-        description="Sampling zone in Campania (southern Italy), named after its main town."
+        description="Sampling zone in Italy, named after its main town (aquila = L'Aquila)."
     )
     variable: Variable = Field(
         description="T2M = air temperature at 2 m (degC); PRECTOTCORR = precipitation (mm/day)."
@@ -36,7 +39,7 @@ class Plan(BaseModel):
         default=False,
         description=(
             "True if the question is not about temperature or precipitation trends in "
-            "Campania, or asks about places or variables that are not available. "
+            "Italy, or asks about places or variables that are not available. "
             "If true, leave items empty."
         ),
     )
@@ -44,8 +47,8 @@ class Plan(BaseModel):
         default="",
         description="One short sentence explaining the decision (used for logs, not shown to the user).",
     )
-    # 5 zones x 2 variables = 10 possible analyses at most.
-    items: list[PlanItem] = Field(default_factory=list, max_length=10)
+    # 13 zones x 2 variables = 26 possible analyses at most.
+    items: list[PlanItem] = Field(default_factory=list, max_length=26)
 
 
 # Same vocabulary as the `trend` field computed by src/stats (so the guardrail can compare directly).

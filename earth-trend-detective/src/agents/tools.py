@@ -23,13 +23,24 @@ FIRST_YEAR, LAST_YEAR = 1981, 2024  # period downloaded and verified
 MIN_YEARS = 10
 METHOD = "seasonal Mann-Kendall test + seasonal Sen slope"
 
-# Sampling zones (docs/dati.md). With NASA POWER (MERRA-2 grid) some zones share a cell.
+# Sampling zones across Italy, one per climate area (docs/dati.md). Names must be lowercase
+# letters only (they are used in placeholders). Verified 2026-11-15: all 13 zones have
+# different NASA POWER series, i.e. no two zones share a MERRA-2 grid cell. If a zone is added
+# in the same cell as another, set "same_cell_as" so the app says their data are identical.
 ZONES = {
-    "napoli": {"lat": 40.85, "lon": 14.27, "environment": "coast, urban", "same_cell_as": "caserta"},
-    "caserta": {"lat": 41.07, "lon": 14.33, "environment": "inland plain", "same_cell_as": "napoli"},
-    "salerno": {"lat": 40.68, "lon": 14.77, "environment": "southern coast", "same_cell_as": None},
-    "avellino": {"lat": 40.91, "lon": 14.79, "environment": "inland Apennines", "same_cell_as": "benevento"},
-    "benevento": {"lat": 41.13, "lon": 14.78, "environment": "inland hills", "same_cell_as": "avellino"},
+    "aosta": {"lat": 45.74, "lon": 7.32, "environment": "north, western Alps, mountain valley", "same_cell_as": None},
+    "bolzano": {"lat": 46.50, "lon": 11.35, "environment": "north, eastern Alps, mountain valley", "same_cell_as": None},
+    "milano": {"lat": 45.46, "lon": 9.19, "environment": "north, Po Valley, inland plain, urban", "same_cell_as": None},
+    "venezia": {"lat": 45.44, "lon": 12.33, "environment": "north, Adriatic coast", "same_cell_as": None},
+    "genova": {"lat": 44.41, "lon": 8.93, "environment": "north, Ligurian coast", "same_cell_as": None},
+    "firenze": {"lat": 43.77, "lon": 11.25, "environment": "centre, inland hills", "same_cell_as": None},
+    "roma": {"lat": 41.90, "lon": 12.50, "environment": "centre, near the Tyrrhenian coast, urban", "same_cell_as": None},
+    "aquila": {"lat": 42.35, "lon": 13.40, "environment": "centre, L'Aquila, Apennine mountains", "same_cell_as": None},
+    "napoli": {"lat": 40.85, "lon": 14.27, "environment": "south, Tyrrhenian coast, urban", "same_cell_as": None},
+    "bari": {"lat": 41.12, "lon": 16.87, "environment": "south, Adriatic coast", "same_cell_as": None},
+    "cosenza": {"lat": 39.30, "lon": 16.25, "environment": "south, Calabria, Apennine hills", "same_cell_as": None},
+    "palermo": {"lat": 38.12, "lon": 13.36, "environment": "islands, Sicily, coast", "same_cell_as": None},
+    "cagliari": {"lat": 39.22, "lon": 9.12, "environment": "islands, Sardinia, coast", "same_cell_as": None},
 }
 
 VARIABLES = {
@@ -53,14 +64,14 @@ def analyze_trend(
     start_year: int = FIRST_YEAR,
     end_year: int = LAST_YEAR,
 ) -> dict:
-    """Test whether a climate variable has a statistically significant trend in a zone of Campania (Italy).
+    """Test whether a climate variable has a statistically significant trend in a zone of Italy.
 
     Uses monthly NASA POWER data and a seasonal Mann-Kendall test (each month is compared
     only with the same month of other years), with the seasonal Sen slope and its 95%
     confidence interval. The significance level is fixed at 0.05.
 
     Args:
-        zone: one of "napoli", "caserta", "salerno", "avellino", "benevento".
+        zone: one of the keys of ZONES (e.g. "aosta", "milano", "napoli", "palermo").
         variable: "T2M" (air temperature at 2 m, degC) or "PRECTOTCORR" (precipitation, mm/day).
         start_year: first year to include, from 1981.
         end_year: last year to include, up to 2024. At least 10 years are required.
