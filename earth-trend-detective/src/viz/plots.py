@@ -51,7 +51,7 @@ def plot_trend(
 
     # Direct labels instead of a legend box.
     ax.annotate(
-        f"trend {slope * 10:+.2f} {unit}/decade\n95% CI [{lower * 10:+.2f}, {upper * 10:+.2f}]",
+        f"trend {slope * 10:+.3f} {unit}/decade\n95% CI [{lower * 10:.3f}, {upper * 10:.3f}]",
         xy=(t[1], line(slope)[1]),
         xytext=(8, 0),
         textcoords="offset points",

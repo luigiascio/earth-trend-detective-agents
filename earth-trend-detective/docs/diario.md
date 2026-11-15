@@ -224,3 +224,13 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Prove con Gemini vero: 3 domande in una sessione (PASS al primo tentativo, fuori ambito
   corretto); RETRY forzato → Gemini corregge e passa al secondo tentativo; FALLBACK forzato →
   template di sicurezza dopo 3 tentativi. **102 test, tutti passano.**
+
+### Interfaccia web (Streamlit)
+- `app.py` (avvio: `uv run streamlit run app.py`): domanda libera o 4 esempi; durante
+  l'esecuzione mostra ogni nodo del grafo con il suo tempo; poi risposta con l'esito del
+  guardrail (verificata al tentativo N / risposta di sicurezza / fuori ambito) e 4 schede:
+  grafici (medie annuali con retta e banda del trend), tabella dei numeri calcolati, piano
+  del Pianificatore, tentativi del guardrail con le violazioni e la risposta grezza di Gemini.
+- Provata senza browser con `streamlit.testing.AppTest`: nessuna eccezione, risposta
+  verificata al primo tentativo, 28 s in tutto (circa 12 s la Spiegazione).
+- Grafico: etichetta del trend con 3 decimali, come nel testo (prima +0.38 contro +0.375).
