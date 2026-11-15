@@ -96,3 +96,11 @@ class Explanation(BaseModel):
     comparisons: list[Comparison] = Field(
         default_factory=list, description="Every comparison between zones made in the text."
     )
+
+
+class GuardrailReport(BaseModel):
+    """Outcome of the deterministic checks on one explanation attempt."""
+
+    passed: bool
+    violations: list[str] = Field(default_factory=list)
+    attempts: int

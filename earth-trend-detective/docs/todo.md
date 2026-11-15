@@ -19,14 +19,14 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 - [x] Grafico della serie con retta di trend (src/viz/plots.py)
 
 ## Blocco 2: agenti
-- [ ] `src/contracts.py` con i modelli pydantic (fatto: `Plan`, `PlanItem`)
+- [x] `src/contracts.py` con i modelli pydantic (Plan, Explanation, GuardrailReport)
 - [x] Tool Python esposti agli agenti: `analyze_trend` (manca il tool del grafico)
-- [ ] Orchestratore + sotto-agenti con Google ADK (fatto: primo agente singolo con un tool, funzionante)
-- [ ] Agente di spiegazione che restituisce testo e lista di Claim
+- [x] Workflow a grafo con Google ADK (`src/agents/detective`)
+- [x] Agente di spiegazione che restituisce testo con segnaposti e lista di Claim
 
 ## Blocco 3: guardrail
-- [ ] Controlli deterministici (numeri, segno, significatività, unità)
-- [ ] Rigenerazione o template di sicurezza se non passa
+- [x] Controlli deterministici (numeri, segno, significatività, unità)
+- [x] Rigenerazione o template di sicurezza se non passa
 - [ ] Piccolo set di valutazione e metriche
 
 ## Blocco 4: interfaccia e demo

@@ -211,3 +211,16 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   sottostringa avrebbe bloccato "non è possibile stabilire", usato correttamente da Gemini.
 - `tests/test_guardrail.py`: 21 test; il caso corretto è una risposta vera di Gemini.
   **97 test in totale, tutti passano.**
+
+### Passo 6 del grafo: guardrail, risposte finali e grafo completo
+- Nodi Python in `src/agents/nodes.py`: `guardrail` (PASS / RETRY con le violazioni in
+  `state["guardrail_feedback"]` / FALLBACK dopo 3 tentativi), `respond`, `safe_answer`
+  (template con i numeri veri), `out_of_scope`, `no_data`. Contratto `GuardrailReport`.
+- Il nodo Analisi azzera i dati della domanda precedente (contatore dei tentativi, feedback):
+  lo stato della sessione sopravvive tra una domanda e l'altra.
+- La domanda originale entra nelle istruzioni della Spiegazione (`ctx.user_content`): il suo
+  input nel grafo è l'output dell'Analisi, non la domanda.
+- `src/agents/detective/agent.py`: `root_agent = Workflow(...)` con il ciclo RETRY.
+- Prove con Gemini vero: 3 domande in una sessione (PASS al primo tentativo, fuori ambito
+  corretto); RETRY forzato → Gemini corregge e passa al secondo tentativo; FALLBACK forzato →
+  template di sicurezza dopo 3 tentativi. **102 test, tutti passano.**

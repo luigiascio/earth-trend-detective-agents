@@ -6,8 +6,8 @@ LLM nodes decide (what to analyse) and explain; Python nodes compute and check.
 from google.adk import Agent, Event
 
 from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend
-from src.contracts import Explanation, Plan
-from src.guardrail.checks import PLACEHOLDER_FIELDS
+from src.contracts import Explanation, GuardrailReport, Plan
+from src.guardrail.checks import PLACEHOLDER_FIELDS, check_explanation, fill_placeholders, format_value
 
 MODEL = "gemini-3.8-flash"  # verified on location "global", see docs/architettura.md
 
@@ -63,6 +63,9 @@ ROUTE_OK = "OK"
 ROUTE_OUT_OF_SCOPE = "OUT_OF_SCOPE"
 ROUTE_NO_DATA = "NO_DATA"
 
+# The session state survives across questions: clear what belongs to the previous one.
+_RESET = {"guardrail_attempts": 0, "guardrail_feedback": [], "guardrail_report": None, "answer": None}
+
 
 def analyze(plan: dict) -> Event:
     """Run analyze_trend for every item of the plan (no LLM here).
@@ -74,7 +77,7 @@ def analyze(plan: dict) -> Event:
     if plan.get("out_of_scope") or not plan.get("items"):
         return Event(
             output={"results": 0, "errors": 0},
-            state={"results": [], "errors": []},
+            state={"results": [], "errors": [], **_RESET},
             route=ROUTE_OUT_OF_SCOPE,
         )
 
@@ -95,7 +98,7 @@ def analyze(plan: dict) -> Event:
 
     return Event(
         output={"results": len(results), "errors": len(errors)},
-        state={"results": results, "errors": errors},
+        state={"results": results, "errors": errors, **_RESET},
         route=ROUTE_OK if results else ROUTE_NO_DATA,
     )
 
@@ -149,7 +152,8 @@ def explainer_instruction(ctx) -> str:
     """
     results = ctx.state.get("results", [])
     errors = ctx.state.get("errors", [])
-    parts = [EXPLAINER_RULES, "Results:", *(_describe_result(r) for r in results)]
+    question = ctx.user_content.parts[0].text if ctx.user_content and ctx.user_content.parts else ""
+    parts = [EXPLAINER_RULES, f"User question: {question}", "Results:", *(_describe_result(r) for r in results)]
     if errors:
         parts.append("Analyses that failed:")
         parts += [f"- {e['zone']}.{e['variable']}: {e['message']}" for e in errors]
@@ -168,3 +172,80 @@ explainer = Agent(
     output_schema=Explanation,
     output_key="explanation",
 )
+
+
+# ---------------------------------------------------------------------------
+# Guardrail and final answers (Python only)
+# ---------------------------------------------------------------------------
+
+MAX_ATTEMPTS = 3  # first explanation + 2 retries
+ROUTE_PASS = "PASS"
+ROUTE_RETRY = "RETRY"
+ROUTE_FALLBACK = "FALLBACK"
+
+
+def guardrail(explanation: dict, results: list, ctx) -> Event:
+    """Check the explanation against the results; choose PASS, RETRY or FALLBACK."""
+    attempts = ctx.state.get("guardrail_attempts", 0) + 1
+    violations = check_explanation(explanation, results)
+    report = GuardrailReport(passed=not violations, violations=violations, attempts=attempts).model_dump()
+    state = {"guardrail_attempts": attempts, "guardrail_report": report}
+
+    if not violations:
+        state["answer"] = fill_placeholders(explanation["text"], results)
+        return Event(output=report, state=state, route=ROUTE_PASS)
+    if attempts < MAX_ATTEMPTS:
+        state["guardrail_feedback"] = violations  # read by explainer_instruction
+        return Event(output=report, state=state, route=ROUTE_RETRY)
+    return Event(output=report, state=state, route=ROUTE_FALLBACK)
+
+
+def respond(answer: str) -> Event:
+    """Show the checked answer (placeholders already replaced by the guardrail)."""
+    return Event(output=answer, message=answer)
+
+
+def _safe_sentence(r: dict) -> str:
+    slope = format_value("slope_per_decade", r["slope_per_decade"])
+    low = format_value("ci_low_per_decade", r["ci_low_per_decade"])
+    high = format_value("ci_high_per_decade", r["ci_high_per_decade"])
+    unit = format_value("unit", r["unit"])
+    p = format_value("p_value", r["p_value"])
+    numbers = f"{slope} {unit} per decade, 95% CI {low} to {high}, p-value {p}"
+    if r["significant"]:
+        verdict = f"statistically significant {r['trend']} trend ({numbers})"
+    else:
+        verdict = f"no statistically significant trend ({numbers})"
+    sentence = f"- {r['zone'].capitalize()}, {r['variable_name']}, {r['period']}: {verdict}."
+    if r["same_grid_cell_as"]:
+        sentence += f" Same NASA POWER grid cell as {r['same_grid_cell_as'].capitalize()}: identical data."
+    return sentence
+
+
+def safe_answer(results: list, errors: list) -> Event:
+    """Fallback: a fixed template filled with the true numbers, used when no explanation passes."""
+    lines = ["Automatic summary of the computed results:"]
+    lines += [_safe_sentence(r) for r in results]
+    lines += [f"- {e['zone'].capitalize()}, {e['variable']}: data not available ({e['message']})." for e in errors]
+    if results:
+        lines.append(f"Source: {results[0]['source']}. Method: {results[0]['method']}, significance level {results[0]['alpha']}.")
+    text = "\n".join(lines)
+    return Event(output=text, state={"answer": text}, message=text)
+
+
+OUT_OF_SCOPE_MESSAGE = (
+    "I can only answer questions about temperature and precipitation trends in Campania "
+    "(Napoli, Caserta, Salerno, Avellino, Benevento), using NASA POWER data from "
+    f"{FIRST_YEAR} to {LAST_YEAR}."
+)
+
+
+def out_of_scope() -> Event:
+    return Event(output=OUT_OF_SCOPE_MESSAGE, state={"answer": OUT_OF_SCOPE_MESSAGE}, message=OUT_OF_SCOPE_MESSAGE)
+
+
+def no_data(errors: list) -> Event:
+    lines = ["None of the requested analyses could be computed:"]
+    lines += [f"- {e['zone'].capitalize()}, {e['variable']}: {e['message']}" for e in errors]
+    text = "\n".join(lines)
+    return Event(output=text, state={"answer": text}, message=text)
