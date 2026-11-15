@@ -1,0 +1,7 @@
+# Dark theme: night blue background; orange / light blue are reserved for trend direction.
+[theme]
+base = "dark"
+backgroundColor = "#0f1a2c"
+secondaryBackgroundColor = "#16233a"
+textColor = "#e8ecf2"
+primaryColor = "#9fb3d1"

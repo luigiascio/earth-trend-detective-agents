@@ -17,6 +17,18 @@ SERIES_1 = "#2a78d6"
 BAND = "#2a78d6"
 
 
+# Dark theme of the web app (night blue). One accent per trend direction, validated with the
+# dataviz palette checker on the dark surface (lightness band, colour-blind separation, contrast).
+DARK = {
+    "surface": "#0f1a2c",
+    "text_primary": "#e8ecf2",
+    "text_secondary": "#9aa4b5",
+    "grid": "#24314a",
+    "series": "#5f6e87",  # observed values stay dim and neutral: the accent is for the trend
+}
+TREND_COLORS = {"increasing": "#d97324", "decreasing": "#3b9bd6", "no trend": "#b4bccb"}
+
+
 def plot_trend(
     years: np.ndarray,
     values: np.ndarray,
@@ -26,12 +38,24 @@ def plot_trend(
     title: str,
     unit: str,
     source: str,
+    trend: str | None = None,
+    dark: bool = False,
 ) -> Figure:
     """Annual values with the trend line and its confidence band.
 
     The trend line passes through (median year, median value), the same pivot
     used by the Theil-Sen intercept. slope/lower/upper are per year.
+    With dark=True the web-app theme is used and the trend is coloured by `trend`
+    (orange increasing, light blue decreasing, grey no significant trend).
     """
+    surface = DARK["surface"] if dark else SURFACE
+    text_primary = DARK["text_primary"] if dark else TEXT_PRIMARY
+    text_secondary = DARK["text_secondary"] if dark else TEXT_SECONDARY
+    grid = DARK["grid"] if dark else GRID
+    series = DARK["series"] if dark else SERIES_1
+    accent = TREND_COLORS.get(trend, text_primary) if dark else TEXT_PRIMARY
+    band = TREND_COLORS.get(trend, BAND) if dark else BAND
+
     years = np.asarray(years, dtype=float)
     values = np.asarray(values, dtype=float)
     pivot_t, pivot_x = np.median(years), np.nanmedian(values)
@@ -41,13 +65,13 @@ def plot_trend(
         return pivot_x + s * (t - pivot_t)
 
     fig, ax = plt.subplots(figsize=(9, 4.5), dpi=150)
-    fig.patch.set_facecolor(SURFACE)
-    ax.set_facecolor(SURFACE)
+    fig.patch.set_facecolor(surface)
+    ax.set_facecolor(surface)
 
     # Confidence band: all lines with a slope between lower and upper.
-    ax.fill_between(t, line(lower), line(upper), color=BAND, alpha=0.12, linewidth=0)
-    ax.plot(years, values, color=SERIES_1, linewidth=2, marker="o", markersize=4, zorder=3)
-    ax.plot(t, line(slope), color=TEXT_PRIMARY, linewidth=2, linestyle="--", zorder=4)
+    ax.fill_between(t, line(lower), line(upper), color=band, alpha=0.18 if dark else 0.12, linewidth=0)
+    ax.plot(years, values, color=series, linewidth=2, marker="o", markersize=4, zorder=3)
+    ax.plot(t, line(slope), color=accent, linewidth=2.5, linestyle="--", zorder=4)
 
     # Direct labels instead of a legend box.
     ax.annotate(
@@ -57,18 +81,18 @@ def plot_trend(
         textcoords="offset points",
         va="center",
         fontsize=9,
-        color=TEXT_PRIMARY,
+        color=text_primary,
     )
 
-    ax.set_title(title, loc="left", fontsize=12, color=TEXT_PRIMARY, pad=12)
-    ax.set_ylabel(unit, color=TEXT_SECONDARY, fontsize=9)
-    ax.tick_params(colors=TEXT_SECONDARY, labelsize=9, length=0)
-    ax.grid(axis="y", color=GRID, linewidth=0.8)
+    ax.set_title(title, loc="left", fontsize=12, color=text_primary, pad=12)
+    ax.set_ylabel(unit, color=text_secondary, fontsize=9)
+    ax.tick_params(colors=text_secondary, labelsize=9, length=0)
+    ax.grid(axis="y", color=grid, linewidth=0.8)
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
-    ax.spines["bottom"].set_color(GRID)
+    ax.spines["bottom"].set_color(grid)
     ax.set_xlim(years.min() - 0.5, years.max() + 0.5)
 
-    fig.text(0.01, 0.01, f"Source: {source}", fontsize=8, color=TEXT_SECONDARY)
+    fig.text(0.01, 0.01, f"Source: {source}", fontsize=8, color=text_secondary)
     fig.tight_layout(rect=(0, 0.03, 0.82, 1))
     return fig

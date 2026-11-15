@@ -234,3 +234,13 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Provata senza browser con `streamlit.testing.AppTest`: nessuna eccezione, risposta
   verificata al primo tentativo, 28 s in tutto (circa 12 s la Spiegazione).
 - Grafico: etichetta del trend con 3 decimali, come nel testo (prima +0.38 contro +0.375).
+- Interfaccia rifatta come **chat**: domanda in basso (`st.chat_input`), conversazione che
+  scorre; ogni risposta mostra esito del guardrail, testo e grafici, con numeri, piano e
+  controlli del guardrail in sezioni richiudibili (sempre disponibili, ma non coprono la
+  risposta). Le domande restano indipendenti e il campo di testo lo dice.
+- **Tema scuro** blu notte (`.streamlit/config.toml`) con un colore per la direzione del
+  trend: arancio aumento, azzurro calo, grigio chiaro nessun trend; serie osservata in grigio
+  scuro. Colori verificati con lo script di validazione della palette (fascia di luminosità,
+  separazione per daltonismo, contrasto ≥ 3:1 sullo sfondo). Nessun blu o rosso NASA.
+- Un solo event loop per l'app (`st.cache_resource`): con `asyncio.run` il client Gemini
+  provava a chiudere le connessioni su un loop già chiuso.
