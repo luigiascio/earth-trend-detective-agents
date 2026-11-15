@@ -163,3 +163,8 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   Zone e variabili sono `Literal` con gli stessi valori di `tools.py` (minuscolo per le zone,
   codici POWER per le variabili): diventano `enum` nello schema JSON e Gemini non può uscirne.
 - Verificato: un piano valido prende gli anni di default; `'roma'` dà un errore di validazione.
+- Aggiunti a `Plan` i campi `out_of_scope` (bool) e `reason` (frase per i log); `items` può
+  essere vuota. Domande fuori ambito: l'LLM alza solo il flag, il ramo del grafo lo sceglie il
+  codice e il messaggio all'utente è un testo fisso. Niente validatore "flag ⇒ lista vuota":
+  Gemini non lo vedrebbe nello schema e un rifiuto di pydantic fermerebbe il grafo.
+- Ogni campo ha una `description`, che finisce nello schema JSON letto da Gemini.
