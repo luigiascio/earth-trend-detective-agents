@@ -133,3 +133,19 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Installato `google-adk` 2.14.1 con uv.
 - Prima chiamata a Gemini via Vertex: 404 per `gemini-flash-latest`, serie 2.5 e regione
   `us-central1`; **funziona `gemini-3.8-flash` su `global`**. Dettagli in `docs/architettura.md`.
+
+### Primo agente (sera del giorno 1)
+- Discussione su cosa decide l'LLM: zona e variabile da liste chiuse, anni entro limiti
+  controllati dal codice; soglia, confidenza, metodo e fonte fissati nel codice (idea dell'autore:
+  "l'LLM sceglie regione e anni, non può toccare i calcoli").
+- `src/agents/tools.py`: `analyze_trend(zone, variable, start_year, end_year)`. Valida gli input e
+  in caso di errore restituisce `{"status": "error", ...}` invece di sollevare eccezioni; usa la
+  cache per zona; restituisce un dict con trend, p-value (cifre significative, mai 0), pendenza e
+  intervallo per decennio, osservazioni, fonte, cella condivisa.
+- `src/agents/earth_trend/agent.py`: `LlmAgent` con `gemini-3.8-flash` e un solo tool; istruzioni
+  con le regole di interpretazione di statistica.md. `.env` nella cartella (ignorato da git).
+- Prova con una domanda su 3 casi: l'agente ha fatto **3 chiamate al tool in parallelo** e la
+  risposta riporta solo numeri presenti nei risultati, con la nota corretta sugli intervalli
+  sovrapposti di Napoli e Avellino.
+- `tests/test_tools.py`: 11 test (validazione, maiuscole, filtro anni, errore di rete simulato).
+  **69 test in totale, tutti passano.**

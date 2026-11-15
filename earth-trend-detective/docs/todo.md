@@ -20,8 +20,8 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 
 ## Blocco 2: agenti
 - [ ] `src/contracts.py` con i modelli pydantic
-- [ ] Tool Python esposti agli agenti (dati, statistica, grafico)
-- [ ] Orchestratore + sotto-agenti con Google ADK
+- [x] Tool Python esposti agli agenti: `analyze_trend` (manca il tool del grafico)
+- [ ] Orchestratore + sotto-agenti con Google ADK (fatto: primo agente singolo con un tool, funzionante)
 - [ ] Agente di spiegazione che restituisce testo e lista di Claim
 
 ## Blocco 3: guardrail
