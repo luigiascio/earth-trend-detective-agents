@@ -46,3 +46,53 @@ class Plan(BaseModel):
     )
     # 5 zones x 2 variables = 10 possible analyses at most.
     items: list[PlanItem] = Field(default_factory=list, max_length=10)
+
+
+# Same vocabulary as the `trend` field computed by src/stats (so the guardrail can compare directly).
+Direction = Literal["increasing", "decreasing", "no trend"]
+Relation = Literal["a_faster", "b_faster", "not_distinguishable", "identical_data"]
+
+
+class Claim(BaseModel):
+    """What the text says, in words, about one analysis result."""
+
+    zone: Zone
+    variable: Variable
+    direction: Direction = Field(
+        description=(
+            "The direction the text states. Use 'no trend' when the text says there is "
+            "no statistically significant trend."
+        )
+    )
+
+
+class Comparison(BaseModel):
+    """A comparison between two zones that the text makes for the same variable."""
+
+    zone_a: Zone
+    zone_b: Zone
+    variable: Variable
+    relation: Relation = Field(
+        description=(
+            "a_faster / b_faster: the text says one zone changes faster than the other. "
+            "not_distinguishable: the text says the difference cannot be established. "
+            "identical_data: the text says the two zones share the same data."
+        )
+    )
+
+
+class Explanation(BaseModel):
+    """The explainer's answer: text with placeholders instead of numbers, plus what it claims."""
+
+    text: str = Field(
+        description=(
+            "The answer for the user. It must contain no digits: every number, period or unit "
+            "is written as a placeholder [zone.variable.field], filled in by code."
+        )
+    )
+    claims: list[Claim] = Field(
+        default_factory=list, description="One claim for every result mentioned in the text."
+    )
+    comparisons: list[Comparison] = Field(
+        default_factory=list, description="Every comparison between zones made in the text."
+    )
