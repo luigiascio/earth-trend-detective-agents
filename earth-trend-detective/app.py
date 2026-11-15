@@ -128,8 +128,10 @@ def show_chart(r: dict) -> None:
     plt.close(fig)
     verdict = f"significant {r['trend']} trend" if r["significant"] else "no statistically significant trend"
     st.caption(
-        f"Seasonal Mann-Kendall on monthly data: {verdict}, q-value {format_value('q_value', r['q_value'])} "
-        f"(Benjamini-Hochberg across {r['n_tests']} zones)."
+        f"Test: seasonal Mann-Kendall on monthly data, {verdict}, q-value "
+        f"{format_value('q_value', r['q_value'])} (Benjamini-Hochberg across {r['n_tests']} zones). "
+        "Dots: annual means. Dashed line and band: seasonal Sen slope with its 95% confidence "
+        "interval (not adjusted for multiple tests)."
     )
 
 

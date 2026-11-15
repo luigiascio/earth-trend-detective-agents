@@ -301,3 +301,7 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   q-value), didascalie dei grafici e risposta di sicurezza erano già aggiornati. Corretti:
   "Aquila" → "L'Aquila" ovunque si mostra un nome (`zone_label` in `tools.py`) e lo schema del
   README, che ora nomina la correzione di Benjamini-Hochberg. **116 test, tutti passano.**
+- Didascalia dei grafici completata: oltre al test (Mann-Kendall stagionale, q-value) ora dice
+  che i punti sono medie annuali e che linea e banda sono la pendenza di Sen stagionale con
+  l'intervallo al 95% (non corretto per i test multipli), per non farla scambiare per una
+  regressione lineare.
