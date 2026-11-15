@@ -34,7 +34,7 @@ EXAMPLES = [
     "Is it getting warmer on the coast of Campania?",
     "Are Napoli and Caserta warming at the same rate? And Salerno?",
     "Is it raining less in Avellino over the last 30 years?",
-    "What's the weather in Rome tomorrow?",
+    "How have temperature and rainfall changed inland since 2000?",
 ]
 
 
@@ -208,6 +208,23 @@ def render_run(run: dict) -> None:
 st.set_page_config(page_title="Earth Trend Detective", page_icon="🌍", layout="wide")
 
 with st.sidebar:
+    # Text logo: an orange trend line with a light blue dot (the two trend colours), then the name.
+    st.markdown(
+        f"""
+<div style="display:flex;align-items:center;gap:10px;margin:-8px 0 18px 0">
+  <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+    <circle cx="19" cy="19" r="18" fill="none" stroke="{TREND_COLORS['decreasing']}" stroke-width="2"/>
+    <polyline points="8,26 14,21 19,23 25,15 30,11" fill="none" stroke="{TREND_COLORS['increasing']}"
+              stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div style="line-height:1.05">
+    <div style="font-size:1.35rem;font-weight:800;letter-spacing:0.02em;color:#ffffff">Earth Trend</div>
+    <div style="font-size:1.35rem;font-weight:800;letter-spacing:0.02em;color:{TREND_COLORS['increasing']}">Detective</div>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
     st.header("How it works")
     st.markdown(
         "1. **Planner** turns your question into analyses: zone, variable, period.\n"

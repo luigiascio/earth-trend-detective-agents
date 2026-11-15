@@ -21,8 +21,8 @@ BAND = "#2a78d6"
 # dataviz palette checker on the dark surface (lightness band, colour-blind separation, contrast).
 DARK = {
     "surface": "#0f1a2c",
-    "text_primary": "#e8ecf2",
-    "text_secondary": "#9aa4b5",
+    "text_primary": "#ffffff",
+    "text_secondary": "#d3d9e2",
     "grid": "#24314a",
     "series": "#d45d9a",  # observed values: magenta, validated against both trend accents
 }

@@ -249,3 +249,8 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   laterale tolte le etichette "(Gemini)" / "(Python)" e aggiunto il magenta alla legenda;
   numeri, piano e guardrail spostati in una **riga di schede orizzontali** subito dopo l'esito
   del guardrail (Answer / Numbers / Plan / Guardrail), con la risposta aperta per prima.
+- Scritte dei grafici in bianco / grigio chiaro; logo testuale "Earth Trend Detective" in cima
+  alla barra laterale (linea arancio dentro un cerchio azzurro, i due colori del trend).
+- Domande consigliate: tolta quella su Roma (un esempio deve mostrare cosa il sistema sa
+  fare; il rifiuto si mostra nella demo scrivendolo a mano), aggiunta "How have temperature
+  and rainfall changed inland since 2000?" (provata: 6 analisi, verificata al primo tentativo).
