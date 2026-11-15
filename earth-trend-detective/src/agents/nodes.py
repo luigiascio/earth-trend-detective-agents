@@ -7,6 +7,7 @@ from google.adk import Agent, Event
 
 from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend
 from src.contracts import Explanation, Plan
+from src.guardrail.checks import PLACEHOLDER_FIELDS
 
 MODEL = "gemini-3.8-flash"  # verified on location "global", see docs/architettura.md
 
@@ -98,12 +99,6 @@ def analyze(plan: dict) -> Event:
         route=ROUTE_OK if results else ROUTE_NO_DATA,
     )
 
-
-# Fields of a result that the explainer may cite as [zone.variable.field]; code fills them in.
-PLACEHOLDER_FIELDS = (
-    "slope_per_decade", "ci_low_per_decade", "ci_high_per_decade", "p_value",
-    "period", "unit", "mean_value", "n_months", "confidence", "alpha", "source", "method",
-)
 
 EXPLAINER_RULES = """You are the explainer of Earth Trend Detective. You turn statistical results
 about climate trends in Campania (southern Italy) into a short, clear answer for the user.

@@ -200,3 +200,14 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Prova con risultati veri: nessuna cifra nel testo; Napoli e Caserta dichiarate "dati identici",
   Salerno "non distinguibile" (intervalli sovrapposti), precipitazioni "nessun trend
   statisticamente significativo".
+
+### Passo 5 del grafo: controlli del guardrail
+- `src/guardrail/checks.py`, funzioni pure: `fill_placeholders` (l'unico punto in cui i numeri
+  vengono formattati: pendenza con segno, p < 0.001, °C, 95%) e `check_explanation`, che
+  restituisce l'elenco delle violazioni: segnaposti inesistenti, cifre fuori dai segnaposti,
+  parole vietate (stabile, invariato, cause), direzione dei claim diversa dal test, risultati
+  citati senza claim, confronti "più veloce" con intervalli sovrapposti o nella stessa cella.
+- Le parole vietate sono espressioni regolari con confini di parola: "stabil" come
+  sottostringa avrebbe bloccato "non è possibile stabilire", usato correttamente da Gemini.
+- `tests/test_guardrail.py`: 21 test; il caso corretto è una risposta vera di Gemini.
+  **97 test in totale, tutti passano.**
