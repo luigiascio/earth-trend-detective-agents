@@ -244,3 +244,8 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   separazione per daltonismo, contrasto ≥ 3:1 sullo sfondo). Nessun blu o rosso NASA.
 - Un solo event loop per l'app (`st.cache_resource`): con `asyncio.run` il client Gemini
   provava a chiudere le connessioni su un loop già chiuso.
+- Ritocchi richiesti: serie osservata in **magenta** `#d45d9a` (unico candidato che passa la
+  validazione insieme ad arancio e azzurro) e banda del trend più intensa; nella barra
+  laterale tolte le etichette "(Gemini)" / "(Python)" e aggiunto il magenta alla legenda;
+  numeri, piano e guardrail spostati in una **riga di schede orizzontali** subito dopo l'esito
+  del guardrail (Answer / Numbers / Plan / Guardrail), con la risposta aperta per prima.

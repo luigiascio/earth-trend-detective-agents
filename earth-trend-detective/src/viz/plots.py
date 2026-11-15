@@ -24,7 +24,7 @@ DARK = {
     "text_primary": "#e8ecf2",
     "text_secondary": "#9aa4b5",
     "grid": "#24314a",
-    "series": "#5f6e87",  # observed values stay dim and neutral: the accent is for the trend
+    "series": "#d45d9a",  # observed values: magenta, validated against both trend accents
 }
 TREND_COLORS = {"increasing": "#d97324", "decreasing": "#3b9bd6", "no trend": "#b4bccb"}
 
@@ -69,7 +69,7 @@ def plot_trend(
     ax.set_facecolor(surface)
 
     # Confidence band: all lines with a slope between lower and upper.
-    ax.fill_between(t, line(lower), line(upper), color=band, alpha=0.18 if dark else 0.12, linewidth=0)
+    ax.fill_between(t, line(lower), line(upper), color=band, alpha=0.28 if dark else 0.12, linewidth=0)
     ax.plot(years, values, color=series, linewidth=2, marker="o", markersize=4, zorder=3)
     ax.plot(t, line(slope), color=accent, linewidth=2.5, linestyle="--", zorder=4)
 

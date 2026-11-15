@@ -27,7 +27,7 @@ from src.agents.nodes import MAX_ATTEMPTS  # noqa: E402
 from src.agents.tools import DATA_RAW, ZONES, FIRST_YEAR, LAST_YEAR  # noqa: E402
 from src.data.power import fetch_power_monthly, parse_power_monthly  # noqa: E402
 from src.guardrail.checks import format_value  # noqa: E402
-from src.viz.plots import TREND_COLORS, plot_trend  # noqa: E402
+from src.viz.plots import DARK, TREND_COLORS, plot_trend  # noqa: E402
 
 APP_NAME = "earth_trend_detective"
 EXAMPLES = [
@@ -157,16 +157,20 @@ def render_run(run: dict) -> None:
         st.warning("No explanation passed the checks: safe summary built from the numbers.", icon="⚠️")
     elif plan.get("out_of_scope"):
         st.info("Out of scope: no analysis was run.", icon="ℹ️")
-    st.markdown((state.get("answer") or "").replace("\n", "  \n"))
+    # One horizontal row of tabs: the answer is open by default, the details are one click away.
+    attempts = len(reports)
+    guard_label = f"Guardrail · {attempts} attempt{'' if attempts == 1 else 's'}" if reports else "Guardrail"
+    tab_answer, tab_numbers, tab_plan, tab_guard = st.tabs(["Answer", "Numbers", "Plan", guard_label])
 
-    if results:
-        chart_cols = st.columns(2)
-        for i, r in enumerate(results):
-            with chart_cols[i % 2]:
-                show_chart(r)
+    with tab_answer:
+        st.markdown((state.get("answer") or "").replace("\n", "  \n"))
+        if results:
+            chart_cols = st.columns(2)
+            for i, r in enumerate(results):
+                with chart_cols[i % 2]:
+                    show_chart(r)
 
-    # The details are always available, collapsed so they do not hide the answer.
-    with st.expander("Numbers computed by Python"):
+    with tab_numbers:
         if results:
             st.dataframe(numbers_table(results), hide_index=True, width="stretch")
             st.caption("Computed by src/stats. These are the only numbers that can appear in the answer.")
@@ -174,13 +178,13 @@ def render_run(run: dict) -> None:
             st.error(f"{e['zone']} · {e['variable']}: {e['message']}")
         if not results and not errors:
             st.write("No analysis was run.")
-    with st.expander("Plan chosen by the planner (Gemini)"):
+    with tab_plan:
+        st.caption("Chosen by the planner from a closed list of zones and variables.")
         if plan.get("reason"):
             st.markdown(f"**Reason:** {plan['reason']}")
         if plan.get("items"):
             st.dataframe(pd.DataFrame(plan["items"]), hide_index=True, width="stretch")
-    attempts = len(reports)
-    with st.expander(f"Guardrail checks ({attempts} attempt{'' if attempts == 1 else 's'})"):
+    with tab_guard:
         if not reports:
             st.write("The guardrail did not run for this question.")
         for rep in reports:
@@ -206,22 +210,23 @@ st.set_page_config(page_title="Earth Trend Detective", page_icon="🌍", layout=
 with st.sidebar:
     st.header("How it works")
     st.markdown(
-        "1. **Planner** (Gemini) turns your question into analyses: zone, variable, period.\n"
-        "2. **Analysis** (Python) downloads NASA POWER data and runs a seasonal "
+        "1. **Planner** turns your question into analyses: zone, variable, period.\n"
+        "2. **Analysis** downloads NASA POWER data and runs a seasonal "
         "Mann-Kendall test with the Sen slope.\n"
-        "3. **Explainer** (Gemini) writes the answer with placeholders: it never writes a number.\n"
-        f"4. **Guardrail** (Python) checks every claim against the numbers. If it fails, the "
+        "3. **Explainer** writes the answer with placeholders: it never writes a number.\n"
+        f"4. **Guardrail** checks every claim against the numbers. If it fails, the "
         f"explainer retries (up to {MAX_ATTEMPTS} attempts), then a safe template is used."
     )
     legend = " &nbsp; ".join(
         f'<span style="color:{color}">■</span> {label}'
         for label, color in [
+            ("observed annual mean", DARK["series"]),
             ("increasing", TREND_COLORS["increasing"]),
             ("decreasing", TREND_COLORS["decreasing"]),
             ("no significant trend", TREND_COLORS["no trend"]),
         ]
     )
-    st.markdown(f"Trend lines: {legend}", unsafe_allow_html=True)
+    st.markdown(f"Chart colours: {legend}", unsafe_allow_html=True)
     st.header("Data")
     st.markdown(
         f"NASA POWER monthly data (MERRA-2), {FIRST_YEAR}-{LAST_YEAR}: air temperature at 2 m "
