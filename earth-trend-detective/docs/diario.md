@@ -149,3 +149,11 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   sovrapposti di Napoli e Avellino.
 - `tests/test_tools.py`: 11 test (validazione, maiuscole, filtro anni, errore di rete simulato).
   **69 test in totale, tutti passano.**
+
+## 2026-11-15 (domenica, giorno 2)
+
+### Orchestratore e sotto-agenti: scelta dell'architettura
+- Letta la documentazione di ADK 2.x: SequentialAgent / LoopAgent deprecati, raccomandato il
+  `Workflow` a grafo. Scelto il grafo (vedi `decisioni.md`), anche per restare aggiornati.
+- Prova minima (grafo con un nodo LLM, due nodi Python e un bivio): funziona. API verificate
+  scritte in `docs/architettura.md`.

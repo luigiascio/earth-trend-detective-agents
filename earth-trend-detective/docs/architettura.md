@@ -108,3 +108,16 @@ Definire in `src/contracts.py` con pydantic: `Plan`, `DataResult`, `TrendResult`
 - Niente numeri prodotti dall'LLM.
 - Niente agenti che chiamano altri agenti senza passare dall'orchestratore.
 - Niente scope creep: prima 1 variabile e 1 regione end to end.
+
+### Workflow a grafo: API verificate su ADK 2.14.1 (prova minima, 2026-11-15)
+- Import: `from google.adk import Agent, Event, Workflow` (`Agent` = `LlmAgent`).
+- Grafo: `Workflow(name=..., edges=[("START", a, b, c), (c, {"PASS": d, "FAIL": e})])`.
+  Una tupla è una catena di nodi; un dizionario a destra mappa il valore del route sul nodo.
+- **Nodo LLM con output strutturato:** `Agent(..., output_schema=ModelloPydantic, output_key="plan")`
+  → il risultato finisce nello stato come **dict** (`state["plan"]`) ed è anche l'output del nodo.
+- **Nodo Python:** una funzione normale. I parametri con il nome di una chiave dello stato vengono
+  riempiti dallo stato (es. `def analyze(plan: dict)` riceve `state["plan"]`); il parametro
+  `node_input` riceve l'output del nodo precedente; `ctx` riceve il contesto.
+- **Cosa restituisce un nodo Python:** `Event(output=..., state={...}, route="...", message="...")`.
+  `state` aggiorna lo stato della sessione, `route` sceglie l'arco, `message` è il testo per l'utente.
+- Esecuzione: `InMemoryRunner(agent=root_agent, app_name=...)`, come per un agente singolo.
