@@ -157,3 +157,9 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   `Workflow` a grafo. Scelto il grafo (vedi `decisioni.md`), anche per restare aggiornati.
 - Prova minima (grafo con un nodo LLM, due nodi Python e un bivio): funziona. API verificate
   scritte in `docs/architettura.md`.
+
+### Passo 1 del grafo: contratto del piano
+- `src/contracts.py`: `PlanItem` (zona, variabile, anni 1981-2024) e `Plan` (da 1 a 10 analisi).
+  Zone e variabili sono `Literal` con gli stessi valori di `tools.py` (minuscolo per le zone,
+  codici POWER per le variabili): diventano `enum` nello schema JSON e Gemini non può uscirne.
+- Verificato: un piano valido prende gli anni di default; `'roma'` dà un errore di validazione.

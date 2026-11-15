@@ -19,7 +19,7 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 - [x] Grafico della serie con retta di trend (src/viz/plots.py)
 
 ## Blocco 2: agenti
-- [ ] `src/contracts.py` con i modelli pydantic
+- [ ] `src/contracts.py` con i modelli pydantic (fatto: `Plan`, `PlanItem`)
 - [x] Tool Python esposti agli agenti: `analyze_trend` (manca il tool del grafico)
 - [ ] Orchestratore + sotto-agenti con Google ADK (fatto: primo agente singolo con un tool, funzionante)
 - [ ] Agente di spiegazione che restituisce testo e lista di Claim
