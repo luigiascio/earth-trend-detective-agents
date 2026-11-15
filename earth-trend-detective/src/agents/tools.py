@@ -55,6 +55,14 @@ ZONES = {
     "cagliari": _zone(39.22, 9.12, "Sardegna", "islands, Sardinia, coast"),
 }
 
+_DISPLAY_NAMES = {"aquila": "L'Aquila"}  # zone keys are lowercase letters only
+
+
+def zone_label(zone: str) -> str:
+    """Name of a zone as shown to people (e.g. "aquila" -> "L'Aquila")."""
+    return _DISPLAY_NAMES.get(zone, zone.capitalize())
+
+
 VARIABLES = {
     "T2M": {"name": "air temperature at 2 m", "unit": "degC"},
     "PRECTOTCORR": {"name": "precipitation (corrected)", "unit": "mm/day"},

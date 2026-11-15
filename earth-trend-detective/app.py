@@ -24,7 +24,7 @@ from google.genai import types  # noqa: E402
 
 from src.agents.detective.agent import root_agent  # noqa: E402
 from src.agents.nodes import MAX_ATTEMPTS  # noqa: E402
-from src.agents.tools import DATA_RAW, ZONES, FIRST_YEAR, LAST_YEAR  # noqa: E402
+from src.agents.tools import DATA_RAW, ZONES, FIRST_YEAR, LAST_YEAR, zone_label  # noqa: E402
 from src.data.power import fetch_power_monthly, parse_power_monthly  # noqa: E402
 from src.guardrail.checks import format_value  # noqa: E402
 from src.viz.plots import DARK, TREND_COLORS, plot_trend  # noqa: E402
@@ -120,7 +120,7 @@ def show_chart(r: dict) -> None:
         series.index.to_numpy(), series.to_numpy(),
         slope=r["slope_per_decade"] / 10, lower=r["ci_low_per_decade"] / 10,
         upper=r["ci_high_per_decade"] / 10,
-        title=f"{r['zone'].capitalize()} · {r['variable_name']} · annual mean",
+        title=f"{zone_label(r['zone'])} · {r['variable_name']} · annual mean",
         unit=format_value("unit", r["unit"]), source=r["source"],
         trend=r["trend"], dark=True,
     )
@@ -136,7 +136,7 @@ def show_chart(r: dict) -> None:
 def numbers_table(results: list[dict]) -> pd.DataFrame:
     return pd.DataFrame([
         {
-            "zone": r["zone"], "variable": r["variable"], "period": r["period"],
+            "zone": zone_label(r["zone"]), "variable": r["variable"], "period": r["period"],
             "trend": r["trend"], "p-value": format_value("p_value", r["p_value"]),
             "q-value (BH)": format_value("q_value", r["q_value"]),
             "slope / decade": format_value("slope_per_decade", r["slope_per_decade"]),
@@ -253,7 +253,7 @@ with st.sidebar:
     st.markdown(
         f"NASA POWER monthly data (MERRA-2), {FIRST_YEAR}-{LAST_YEAR}: air temperature at 2 m "
         f"and precipitation, in the {len(ZONES)} regional capitals of Italy: "
-        + ", ".join(z.capitalize() for z in ZONES) + "."
+        + ", ".join(zone_label(z) for z in ZONES) + "."
     )
     st.caption("Data: NASA Langley Research Center (LaRC) POWER Project, funded through the "
                "NASA Earth Science/Applied Science Program.")

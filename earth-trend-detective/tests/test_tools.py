@@ -119,3 +119,8 @@ def test_family_covers_all_zones(fake_power):
     result = analyze_trend("napoli", "T2M")
     assert result["n_tests"] == len(ZONES)
     assert result["q_value"] >= result["p_value"]
+
+
+def test_zone_label():
+    assert tools.zone_label("aquila") == "L'Aquila"
+    assert tools.zone_label("napoli") == "Napoli"

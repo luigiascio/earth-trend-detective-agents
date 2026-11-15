@@ -45,6 +45,7 @@ Planner (Gemini, structured output) ── out of scope? ──► fixed refusal
    │  plan: [(zone, variable, start_year, end_year), ...]
    ▼
 Analysis (Python): NASA POWER download + seasonal Mann-Kendall + Sen slope
+   │                  + Benjamini-Hochberg correction across the 20 zones
    │  results + errors (a failed download does not stop the other analyses)
    ▼
 Explainer (Gemini): text with placeholders + structured claims and comparisons

@@ -5,7 +5,7 @@ LLM nodes decide (what to analyse) and explain; Python nodes compute and check.
 
 from google.adk import Agent, Event
 
-from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend
+from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend, zone_label
 from src.contracts import Explanation, GuardrailReport, Plan
 from src.guardrail.checks import PLACEHOLDER_FIELDS, check_explanation, fill_placeholders, format_value
 
@@ -232,9 +232,9 @@ def _safe_sentence(r: dict) -> str:
         verdict = f"statistically significant {r['trend']} trend ({numbers})"
     else:
         verdict = f"no statistically significant trend ({numbers})"
-    sentence = f"- {r['zone'].capitalize()}, {r['variable_name']}, {r['period']}: {verdict}."
+    sentence = f"- {zone_label(r['zone'])}, {r['variable_name']}, {r['period']}: {verdict}."
     if r["same_grid_cell_as"]:
-        sentence += f" Same NASA POWER grid cell as {r['same_grid_cell_as'].capitalize()}: identical data."
+        sentence += f" Same NASA POWER grid cell as {zone_label(r['same_grid_cell_as'])}: identical data."
     return sentence
 
 
@@ -242,7 +242,7 @@ def safe_answer(results: list, errors: list) -> Event:
     """Fallback: a fixed template filled with the true numbers, used when no explanation passes."""
     lines = ["Automatic summary of the computed results:"]
     lines += [_safe_sentence(r) for r in results]
-    lines += [f"- {e['zone'].capitalize()}, {e['variable']}: data not available ({e['message']})." for e in errors]
+    lines += [f"- {zone_label(e['zone'])}, {e['variable']}: data not available ({e['message']})." for e in errors]
     if results:
         lines.append(f"Source: {results[0]['source']}. Method: {results[0]['method']}, significance level {results[0]['alpha']}.")
     text = "\n".join(lines)
@@ -251,7 +251,7 @@ def safe_answer(results: list, errors: list) -> Event:
 
 OUT_OF_SCOPE_MESSAGE = (
     "I can only answer questions about temperature and precipitation trends in Italy, "
-    f"in these zones: {', '.join(z.capitalize() for z in ZONES)}, "
+    f"in these zones: {', '.join(zone_label(z) for z in ZONES)}, "
     f"using NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}."
 )
 
@@ -262,6 +262,6 @@ def out_of_scope() -> Event:
 
 def no_data(errors: list) -> Event:
     lines = ["None of the requested analyses could be computed:"]
-    lines += [f"- {e['zone'].capitalize()}, {e['variable']}: {e['message']}" for e in errors]
+    lines += [f"- {zone_label(e['zone'])}, {e['variable']}: {e['message']}" for e in errors]
     text = "\n".join(lines)
     return Event(output=text, state={"answer": text}, message=text)

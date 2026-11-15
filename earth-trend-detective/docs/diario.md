@@ -297,3 +297,7 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Tolta da tutti i commit la riga "Co-Authored-By: Claude" (cronologia riscritta, force push):
   l'uso dell'AI resta dichiarato nella sezione "Use of AI" del README.
 - Repository rinominato in `earth-trend-detective-agents`; aggiornato il link nel README.
+- Controllo dei testi dell'app dopo il cambio di metodo: barra laterale, tabella (colonna
+  q-value), didascalie dei grafici e risposta di sicurezza erano già aggiornati. Corretti:
+  "Aquila" → "L'Aquila" ovunque si mostra un nome (`zone_label` in `tools.py`) e lo schema del
+  README, che ora nomina la correzione di Benjamini-Hochberg. **116 test, tutti passano.**
