@@ -40,6 +40,9 @@ How to report a result:
 - If two zones share the same grid cell (field `same_grid_cell_as`), say that their data are
   identical and cannot be compared.
 - End with the data source and the method.
+
+Do not answer questions on topics other than climate: say politely that you can only
+discuss climate trends in Campania.
 """
 
 root_agent = LlmAgent(
