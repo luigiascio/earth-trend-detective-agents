@@ -6,7 +6,7 @@ LLM nodes decide (what to analyse) and explain; Python nodes compute and check.
 from google.adk import Agent, Event
 
 from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend
-from src.contracts import Plan
+from src.contracts import Explanation, Plan
 
 MODEL = "gemini-3.8-flash"  # verified on location "global", see docs/architettura.md
 
@@ -97,3 +97,79 @@ def analyze(plan: dict) -> Event:
         state={"results": results, "errors": errors},
         route=ROUTE_OK if results else ROUTE_NO_DATA,
     )
+
+
+# Fields of a result that the explainer may cite as [zone.variable.field]; code fills them in.
+PLACEHOLDER_FIELDS = (
+    "slope_per_decade", "ci_low_per_decade", "ci_high_per_decade", "p_value",
+    "period", "unit", "mean_value", "n_months", "confidence", "alpha", "source", "method",
+)
+
+EXPLAINER_RULES = """You are the explainer of Earth Trend Detective. You turn statistical results
+about climate trends in Campania (southern Italy) into a short, clear answer for the user.
+
+Writing numbers:
+- Your text must contain NO digits at all. Write every number, period, unit, source and
+  method as a placeholder [zone.variable.field], for example [napoli.T2M.slope_per_decade].
+  Code replaces each placeholder with the exact value, so never copy the values yourself.
+- Allowed fields: """ + ", ".join(PLACEHOLDER_FIELDS) + """.
+- Use only zones and variables listed in the results below.
+- A slope is per decade: write e.g. "[napoli.T2M.slope_per_decade] [napoli.T2M.unit] per decade".
+
+Interpreting results (rules from docs/statistica.md):
+- significant = False: say "no statistically significant trend". Never say "stable",
+  "unchanged" or "not changing".
+- significant = True: state the direction and the slope with its confidence interval.
+- A significant trend is not necessarily large; a p-value is not the probability that the
+  trend is real.
+- Say that one zone changes faster than another only if their confidence intervals do not
+  overlap; otherwise say the difference cannot be established.
+- If two zones share the same grid cell (same_grid_cell_as), say their data are identical
+  and cannot be compared.
+- If some analyses failed, say which data were not available.
+- End with the source and the method, as placeholders.
+- Answer in the language of the user's question.
+
+Structured fields:
+- claims: one entry for every result you mention, with the direction you state
+  ("no trend" when you say there is no statistically significant trend).
+- comparisons: one entry for every comparison between two zones you make.
+"""
+
+
+def _describe_result(r: dict) -> str:
+    return (
+        f"- {r['zone']}.{r['variable']} ({r['variable_name']}, {r['environment']}): "
+        f"trend={r['trend']}, significant={r['significant']}, p_value={r['p_value']}, "
+        f"slope_per_decade={r['slope_per_decade']}, confidence interval per decade="
+        f"[{r['ci_low_per_decade']}, {r['ci_high_per_decade']}] {r['unit']}, "
+        f"period={r['period']}, same_grid_cell_as={r['same_grid_cell_as']}"
+    )
+
+
+def explainer_instruction(ctx) -> str:
+    """Build the explainer prompt from the session state (results, errors, guardrail feedback).
+
+    A callable instruction is not templated by ADK, so braces in the data are safe.
+    """
+    results = ctx.state.get("results", [])
+    errors = ctx.state.get("errors", [])
+    parts = [EXPLAINER_RULES, "Results:", *(_describe_result(r) for r in results)]
+    if errors:
+        parts.append("Analyses that failed:")
+        parts += [f"- {e['zone']}.{e['variable']}: {e['message']}" for e in errors]
+    feedback = ctx.state.get("guardrail_feedback")
+    if feedback:
+        parts.append("Your previous answer was rejected by the checker. Fix these problems:")
+        parts += [f"- {problem}" for problem in feedback]
+    return "\n".join(parts)
+
+
+explainer = Agent(
+    name="explainer",
+    model=MODEL,
+    description="Explains the computed trends in words, with placeholders instead of numbers.",
+    instruction=explainer_instruction,
+    output_schema=Explanation,
+    output_key="explanation",
+)

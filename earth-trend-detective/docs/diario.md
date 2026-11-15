@@ -186,3 +186,17 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Route: `OK` (almeno un risultato), `NO_DATA` (tutte fallite), `OUT_OF_SCOPE` (flag del piano
   o lista vuota; in quel caso non si scarica nulla).
 - `tests/test_nodes.py`: 7 test con `analyze_trend` simulato. **76 test in totale, tutti passano.**
+
+### Passo 4 del grafo: contratti e nodo Spiegazione
+- Scelta: la Spiegazione scrive il testo **con segnaposti** `[zona.variabile.campo]` al posto dei
+  numeri (li inserisce il codice) più `claims` (direzione affermata per ogni risultato) e
+  `comparisons` (confronti tra zone), che il guardrail confronterà con i risultati. Motivo: con
+  i numeri copiati dall'LLM il guardrail controllerebbe la lista ma l'utente leggerebbe il testo.
+- `src/contracts.py`: `Claim`, `Comparison`, `Explanation` (direzioni con lo stesso vocabolario
+  di `src/stats`: increasing / decreasing / no trend).
+- `explainer` in `src/agents/nodes.py`: istruzioni costruite da una funzione che legge lo stato
+  (`results`, `errors` e, nei tentativi successivi, `guardrail_feedback`); una funzione non
+  viene interpretata da ADK, quindi le graffe nei dati non sono un problema.
+- Prova con risultati veri: nessuna cifra nel testo; Napoli e Caserta dichiarate "dati identici",
+  Salerno "non distinguibile" (intervalli sovrapposti), precipitazioni "nessun trend
+  statisticamente significativo".
