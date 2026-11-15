@@ -142,8 +142,8 @@ Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), and a Google Cloud
 with the Vertex AI API (`aiplatform.googleapis.com`) enabled.
 
 ```bash
-git clone https://github.com/luigiascio/hackaton-nasa.git
-cd hackaton-nasa/earth-trend-detective
+git clone https://github.com/luigiascio/earth-trend-detective-agents.git
+cd earth-trend-detective-agents/earth-trend-detective
 uv sync
 gcloud auth application-default login
 ```

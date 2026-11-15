@@ -292,3 +292,8 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   significativa solo a **Bologna, in calo** (q = 0.015); gli aumenti "significativi" di Bari,
   L'Aquila e Perugia spariscono con la correzione. Prova con Gemini su 3 domande, tutte
   verificate al primo tentativo. **115 test, tutti passano.**
+
+### Repository
+- Tolta da tutti i commit la riga "Co-Authored-By: Claude" (cronologia riscritta, force push):
+  l'uso dell'AI resta dichiarato nella sezione "Use of AI" del README.
+- Repository rinominato in `earth-trend-detective-agents`; aggiornato il link nel README.
