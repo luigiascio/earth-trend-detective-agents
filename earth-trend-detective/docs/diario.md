@@ -177,3 +177,12 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   (`same_grid_cell_as`) e lo controllerà il guardrail.
 - Prova su 6 domande, tutte corrette: "ultimi 20 anni" → 2005-2024; "costa" → Napoli e
   Salerno con entrambe le variabili; "Campania" → tutte le zone; Roma e vento → `out_of_scope`.
+
+### Passo 3 del grafo: nodo Analisi (Python)
+- `analyze(plan)` in `src/agents/nodes.py`: legge `state["plan"]`, chiama `analyze_trend` per
+  ogni item (una volta sola per item ripetuti), scrive `state["results"]` e `state["errors"]`.
+- Scelta: un'analisi fallita **non ferma le altre**; l'errore viene conservato con zona e
+  variabile, così la Spiegazione può dire quali dati mancano.
+- Route: `OK` (almeno un risultato), `NO_DATA` (tutte fallite), `OUT_OF_SCOPE` (flag del piano
+  o lista vuota; in quel caso non si scarica nulla).
+- `tests/test_nodes.py`: 7 test con `analyze_trend` simulato. **76 test in totale, tutti passano.**

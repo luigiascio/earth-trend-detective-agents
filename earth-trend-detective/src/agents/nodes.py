@@ -3,9 +3,9 @@
 LLM nodes decide (what to analyse) and explain; Python nodes compute and check.
 """
 
-from google.adk import Agent
+from google.adk import Agent, Event
 
-from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES
+from src.agents.tools import FIRST_YEAR, LAST_YEAR, VARIABLES, ZONES, analyze_trend
 from src.contracts import Plan
 
 MODEL = "gemini-3.8-flash"  # verified on location "global", see docs/architettura.md
@@ -55,3 +55,45 @@ planner = Agent(
     output_schema=Plan,
     output_key="plan",
 )
+
+
+# Routes chosen by the analysis node (the graph maps each one to the next node).
+ROUTE_OK = "OK"
+ROUTE_OUT_OF_SCOPE = "OUT_OF_SCOPE"
+ROUTE_NO_DATA = "NO_DATA"
+
+
+def analyze(plan: dict) -> Event:
+    """Run analyze_trend for every item of the plan (no LLM here).
+
+    `plan` is read from state["plan"], written by the planner node.
+    Failed analyses do not stop the others: they are collected in `errors`
+    so the explanation can say which data were not available.
+    """
+    if plan.get("out_of_scope") or not plan.get("items"):
+        return Event(
+            output={"results": 0, "errors": 0},
+            state={"results": [], "errors": []},
+            route=ROUTE_OUT_OF_SCOPE,
+        )
+
+    results, errors = [], []
+    seen = set()
+    for item in plan["items"]:
+        key = (item["zone"], item["variable"], item["start_year"], item["end_year"])
+        if key in seen:  # the LLM may repeat an item: compute it only once
+            continue
+        seen.add(key)
+
+        result = analyze_trend(**item)
+        if result["status"] == "success":
+            results.append(result)
+        else:
+            # Keep what was asked, so the explanation can name the missing analysis.
+            errors.append({**item, "message": result["message"]})
+
+    return Event(
+        output={"results": len(results), "errors": len(errors)},
+        state={"results": results, "errors": errors},
+        route=ROUTE_OK if results else ROUTE_NO_DATA,
+    )
