@@ -168,3 +168,12 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
   codice e il messaggio all'utente è un testo fisso. Niente validatore "flag ⇒ lista vuota":
   Gemini non lo vedrebbe nello schema e un rifiuto di pydantic fermerebbe il grafo.
 - Ogni campo ha una `description`, che finisce nello schema JSON letto da Gemini.
+
+### Passo 2 del grafo: nodo Pianificatore
+- `src/agents/nodes.py`: `planner` = `Agent` con `output_schema=Plan`, `output_key="plan"`.
+  Le istruzioni elencano zone e variabili prese da `tools.py` (una sola fonte di verità).
+- Scelta: se l'utente nomina due zone nella stessa cella (Napoli e Caserta), il Pianificatore
+  le pianifica entrambe; il fatto che i dati sono identici arriva da `analyze_trend`
+  (`same_grid_cell_as`) e lo controllerà il guardrail.
+- Prova su 6 domande, tutte corrette: "ultimi 20 anni" → 2005-2024; "costa" → Napoli e
+  Salerno con entrambe le variabili; "Campania" → tutte le zone; Roma e vento → `out_of_scope`.
