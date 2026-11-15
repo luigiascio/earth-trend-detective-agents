@@ -3,7 +3,7 @@
 **NASA Space Apps Challenge 2026 · Challenge: _Be An Earth System Trend Detective!_**
 
 Ask a question in plain language about climate trends in **Italy**, such as _"Are the Alps
-warming faster than Sicily?"_ or _"Is it raining more in southern Italy?"_.
+warming faster than Sicily?"_ or _"Where in Italy has rainfall changed significantly?"_.
 Earth Trend Detective then:
 
 1. **selects** the variables, places and period that answer it (NASA POWER temperature and
@@ -78,6 +78,10 @@ explanation and its placeholders.
   trend. Significance level 0.05.
 - **Seasonal Sen slope** (Sen, 1968) with a 95% confidence interval: the median of the
   pairwise slopes, robust to outliers. Reported per decade.
+- **Benjamini-Hochberg correction** (1995) for multiple tests: each p-value is corrected
+  against all 20 zones for the same variable and period, and significance is decided on the
+  corrected **q-value** (false discovery rate 5%). The family is fixed, so a trend gets the
+  same verdict whatever else the user asks about.
 - At least 10 years of data are required. Missing values are removed and counted, never
   filled in.
 - The interpretation rules are written into the explainer and enforced by the guardrail:
@@ -92,8 +96,9 @@ explanation and its placeholders.
 - NASA POWER is based on the **MERRA-2 reanalysis**, on a grid of about 0.5° × 0.625°.
   Nearby zones can fall in the same cell: the app detects this and says that their data are
   identical.
-- No correction yet for serial correlation between years (Hamed-Rao) or for multiple tests
-  across zones (Benjamini-Hochberg).
+- No correction yet for serial correlation between years (Hamed-Rao).
+- Confidence intervals are not adjusted for multiple tests: an interval can exclude 0 while the
+  q-value is not significant.
 - The charts show annual means; the test runs on monthly data. The caption under each chart
   says so.
 - Each question is answered on its own: follow-up questions do not use the previous one.
@@ -109,22 +114,27 @@ explanation and its placeholders.
 > These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded
 > through the NASA Earth Science/Applied Science Program. <https://power.larc.nasa.gov>
 
-**13 sampling zones across Italy, one per climate area:** Aosta and Bolzano (Alps), Milano
-(Po Valley), Venezia and Genova (northern coasts), Firenze, Roma and L'Aquila (centre), Napoli,
-Bari and Cosenza (south), Palermo (Sicily) and Cagliari (Sardinia). Coordinates are in
-`src/agents/tools.py`. The 13 zones were checked to fall in 13 different MERRA-2 grid cells.
+**20 sampling zones: the regional capitals of Italy**, from Aosta and Trento in the Alps to
+Palermo and Cagliari on the islands. Coordinates are in `src/agents/tools.py`. The 20 zones
+were checked to fall in 20 different MERRA-2 grid cells. The method works for any point on
+Earth: NASA POWER is global.
 
 ## What it found
 
-Seasonal Mann-Kendall test and Sen slope, 1981-2024, 95% confidence intervals:
+1981-2024, seasonal Mann-Kendall test and Sen slope, 95% confidence intervals, significance
+on the Benjamini-Hochberg q-value:
 
-- **Temperature is rising significantly in all 13 zones, but not at the same rate.** There is
-  a north-south gradient. The Alps and the Po Valley warm by about **+0.48 °C per decade**
-  (Aosta [0.37, 0.59], Milano [0.38, 0.58]); Sicily by **+0.22 °C per decade** (Palermo
-  [0.15, 0.28]). The intervals do not overlap, so the difference is supported by the data.
-- **Precipitation shows no significant trend in most zones.** It increases significantly in
-  Bolzano, L'Aquila, Bari and Cosenza. There is no significant decrease in any zone.
-- These are exploratory results: they are not corrected for multiple testing across zones.
+- **Temperature is rising significantly in all 20 regional capitals, but not at the same
+  rate.** It rises fastest in the north: Bologna **+0.52 °C per decade** [0.42, 0.62], Trento,
+  Aosta and Milano about +0.48. It rises slowest in the south and on the islands: Palermo
+  **+0.22 °C per decade** [0.15, 0.28]. The intervals do not overlap, so the north-south
+  difference is supported by the data.
+- **Rainfall shows no significant trend in 19 of 20 capitals.** The exception is **Bologna,
+  where it decreases**: -0.12 mm/day per decade [-0.19, -0.05], q = 0.015. Without the
+  correction, Bari, L'Aquila and Perugia would also have shown "significant" increases
+  (p = 0.015-0.034). After the correction their q-values are 0.15 or more: they are likely
+  false discoveries. This is the kind of error the guardrail and the statistics are designed
+  to prevent.
 
 ## Run it
 
@@ -156,7 +166,7 @@ Other ways to run it:
 
 ```bash
 uv run adk web src/agents            # ADK developer UI, choose "detective"
-uv run pytest                        # 104 tests, no network and no LLM needed
+uv run pytest                        # 115 tests, no network and no LLM needed
 ```
 
 The model is `gemini-3.8-flash` on location `global` (`src/agents/nodes.py`).
@@ -190,7 +200,8 @@ output is checked by deterministic code before it is shown.
 pair-programming assistant:
 
 - **Decided by the author:** the challenge, the idea of an agent system with a numeric
-  guardrail, the area (first Campania, then Italy) and the variables, and the main design decisions recorded in
+  guardrail, the area (first Campania, then the 20 regional capitals of Italy), the
+  correction for multiple tests and the variables, and the main design decisions recorded in
   `docs/decisioni.md`. These include the graph workflow, placeholders instead of numbers,
   the out-of-scope flag, continuing when one analysis fails, and planning every zone the user
   names even when two share a grid cell.
@@ -198,7 +209,7 @@ pair-programming assistant:
   was written by Claude Code under the author's direction, step by step, as a learning
   exercise. Some parts were written by the author: the data parser logic, the Mann-Kendall S
   statistic and the pairwise slopes. All code was reviewed and run by the author.
-- **Checks on AI-written code:** 104 automated tests; the statistics are cross-checked
+- **Checks on AI-written code:** 115 automated tests; the statistics are cross-checked
   against the independent `pymannkendall` package; the agents were tested end to end with
   real questions.
 
@@ -211,6 +222,9 @@ carries a visible watermark.
   water quality data. _Water Resources Research_, 18(1), 107-121.
 - Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
   _Journal of the American Statistical Association_, 63(324), 1379-1389.
+- Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate: a practical and
+  powerful approach to multiple testing. _Journal of the Royal Statistical Society B_, 57(1),
+  289-300.
 - Mann, H. B. (1945). Nonparametric tests against trend. _Econometrica_, 13(3), 245-259.
 - Kendall, M. G. (1975). _Rank Correlation Methods_. Griffin, London.
 - Gelaro, R., et al. (2017). The Modern-Era Retrospective Analysis for Research and

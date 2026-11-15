@@ -70,7 +70,8 @@ from types import SimpleNamespace  # noqa: E402
 
 RESULT = {
     "zone": "salerno", "variable": "T2M", "variable_name": "air temperature at 2 m",
-    "trend": "increasing", "significant": True, "p_value": 1e-8, "slope_per_decade": 0.32,
+    "trend": "increasing", "significant": True, "p_value": 1e-8, "q_value": 2e-8, "n_tests": 20,
+    "region": "Campania", "slope_per_decade": 0.32,
     "ci_low_per_decade": 0.25, "ci_high_per_decade": 0.397, "same_grid_cell_as": None,
     "unit": "degC", "period": "1981-2024", "confidence": 0.95, "alpha": 0.05,
     "source": "NASA POWER (MERRA2)", "method": "seasonal Mann-Kendall test + seasonal Sen slope",
@@ -109,10 +110,17 @@ def test_guardrail_fallback_after_max_attempts():
 def test_safe_answer_uses_true_numbers():
     error = {"zone": "napoli", "variable": "T2M", "message": "timeout"}
     text = nodes.safe_answer([RESULT], [error]).actions.state_delta["answer"]
-    assert "statistically significant increasing trend (+0.320 °C per decade, 95% CI 0.250 to 0.397, p-value < 0.001)" in text
+    assert "statistically significant increasing trend (+0.320 °C per decade, 95% CI 0.250 to 0.397, q-value < 0.001)" in text
     assert "Napoli, T2M: data not available (timeout)" in text
 
 
 def test_analyze_resets_previous_question(fake_trend):
     state = nodes.analyze({"items": [item("napoli")]}).actions.state_delta
     assert state["guardrail_attempts"] == 0 and state["guardrail_feedback"] == []
+
+
+def test_plan_is_capped(fake_trend, monkeypatch):
+    monkeypatch.setattr(nodes, "MAX_ANALYSES", 2)
+    state = nodes.analyze({"items": [item("napoli"), item("roma"), item("bari")]}).actions.state_delta
+    assert len(state["results"]) == 2
+    assert state["errors"][0]["zone"] == "bari" and "at most 2" in state["errors"][0]["message"]

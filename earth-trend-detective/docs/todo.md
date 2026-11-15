@@ -14,7 +14,7 @@ Aggiornare a fine di ogni blocco di lavoro. Priorità: catena end to end prima d
 - [x] Download e pulizia di una variabile per una regione (NASA POWER)
 - [x] Mann-Kendall + Theil-Sen + intervallo di confidenza, con test (39 test)
 - [x] Gestione di stagionalità e dati mancanti (Mann-Kendall stagionale, NaN tolti e contati)
-- [ ] Correzione per test multipli (Benjamini-Hochberg) sui 12 trend mensili e sulle celle
+- [x] Correzione per test multipli (Benjamini-Hochberg) tra le 20 zone (non ancora sui trend mensili)
 - [ ] Controllare l'autocorrelazione tra anni (Hamed-Rao sulle medie annuali come verifica)
 - [x] Grafico della serie con retta di trend (src/viz/plots.py)
 

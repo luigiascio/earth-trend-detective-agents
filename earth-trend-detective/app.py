@@ -33,7 +33,7 @@ APP_NAME = "earth_trend_detective"
 EXAMPLES = [
     "Are the Alps warming faster than Sicily?",
     "Is it raining more in southern Italy?",
-    "Which zones of northern Italy are warming the most?",
+    "Where in Italy has rainfall changed significantly?",
     "How has the climate changed in Napoli since 2000?",
 ]
 
@@ -127,7 +127,10 @@ def show_chart(r: dict) -> None:
     st.pyplot(fig)
     plt.close(fig)
     verdict = f"significant {r['trend']} trend" if r["significant"] else "no statistically significant trend"
-    st.caption(f"Seasonal Mann-Kendall on monthly data: {verdict}, p-value {format_value('p_value', r['p_value'])}.")
+    st.caption(
+        f"Seasonal Mann-Kendall on monthly data: {verdict}, q-value {format_value('q_value', r['q_value'])} "
+        f"(Benjamini-Hochberg across {r['n_tests']} zones)."
+    )
 
 
 def numbers_table(results: list[dict]) -> pd.DataFrame:
@@ -135,6 +138,7 @@ def numbers_table(results: list[dict]) -> pd.DataFrame:
         {
             "zone": r["zone"], "variable": r["variable"], "period": r["period"],
             "trend": r["trend"], "p-value": format_value("p_value", r["p_value"]),
+            "q-value (BH)": format_value("q_value", r["q_value"]),
             "slope / decade": format_value("slope_per_decade", r["slope_per_decade"]),
             "95% CI": f"[{r['ci_low_per_decade']:.3f}, {r['ci_high_per_decade']:.3f}]",
             "unit": format_value("unit", r["unit"]),
@@ -229,7 +233,8 @@ with st.sidebar:
     st.markdown(
         "1. **Planner** turns your question into analyses: zone, variable, period.\n"
         "2. **Analysis** downloads NASA POWER data and runs a seasonal "
-        "Mann-Kendall test with the Sen slope.\n"
+        "Mann-Kendall test with the Sen slope, corrected for multiple tests across the "
+        "20 zones (Benjamini-Hochberg).\n"
         "3. **Explainer** writes the answer with placeholders: it never writes a number.\n"
         f"4. **Guardrail** checks every claim against the numbers. If it fails, the "
         f"explainer retries (up to {MAX_ATTEMPTS} attempts), then a safe template is used."
@@ -247,7 +252,7 @@ with st.sidebar:
     st.header("Data")
     st.markdown(
         f"NASA POWER monthly data (MERRA-2), {FIRST_YEAR}-{LAST_YEAR}: air temperature at 2 m "
-        f"and precipitation, in {len(ZONES)} zones across Italy, one per climate area: "
+        f"and precipitation, in the {len(ZONES)} regional capitals of Italy: "
         + ", ".join(z.capitalize() for z in ZONES) + "."
     )
     st.caption("Data: NASA Langley Research Center (LaRC) POWER Project, funded through the "

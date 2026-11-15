@@ -22,6 +22,14 @@ def synthetic_payload(slope_per_year: float = 0.03) -> dict:
     }
 
 
+@pytest.fixture(autouse=True)
+def empty_family_cache():
+    """The Benjamini-Hochberg family is cached per (variable, period): start every test empty."""
+    tools._FAMILY_CACHE.clear()
+    yield
+    tools._FAMILY_CACHE.clear()
+
+
 @pytest.fixture
 def fake_power(monkeypatch):
     """Replace the download with a synthetic payload: no network, no files."""
@@ -95,3 +103,19 @@ def test_contract_zones_match_the_tool_zones():
 def test_zone_names_fit_the_placeholder_syntax():
     """Zone names appear in placeholders [zone.variable.field]: lowercase letters only."""
     assert all(name.isalpha() and name.islower() for name in ZONES)
+
+
+def test_significance_uses_the_corrected_q_value(fake_power, monkeypatch):
+    """A tiny p-value is not enough: if the q-value is above 0.05 there is no significant trend."""
+    monkeypatch.setattr(tools, "family_q_values", lambda *args: {zone: 0.2 for zone in ZONES})
+    result = analyze_trend("napoli", "T2M")
+    assert result["p_value"] < 1e-6
+    assert result["q_value"] == 0.2
+    assert result["significant"] is False
+    assert result["trend"] == "no trend"
+
+
+def test_family_covers_all_zones(fake_power):
+    result = analyze_trend("napoli", "T2M")
+    assert result["n_tests"] == len(ZONES)
+    assert result["q_value"] >= result["p_value"]

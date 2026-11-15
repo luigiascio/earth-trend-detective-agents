@@ -121,3 +121,6 @@ Definire in `src/contracts.py` con pydantic: `Plan`, `DataResult`, `TrendResult`
 - **Cosa restituisce un nodo Python:** `Event(output=..., state={...}, route="...", message="...")`.
   `state` aggiorna lo stato della sessione, `route` sceglie l'arco, `message` è il testo per l'utente.
 - Esecuzione: `InMemoryRunner(agent=root_agent, app_name=...)`, come per un agente singolo.
+- **Limite di Gemini (Vertex AI):** uno schema di output con `maxItems` > 32 viene rifiutato con
+  400 INVALID_ARGUMENT (verificato: 32 funziona, 33 no). Per questo `Plan.items` non ha
+  `max_length` e il limite di analisi è applicato nel nodo Analisi.

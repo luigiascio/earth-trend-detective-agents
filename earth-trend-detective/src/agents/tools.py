@@ -12,6 +12,7 @@ import numpy as np
 
 from src.data.power import fetch_power_monthly, parse_power_monthly
 from src.stats.mann_kendall import InsufficientDataError
+from src.stats.multiple import benjamini_hochberg
 from src.stats.seasonal import seasonal_mann_kendall, seasonal_sen_slope
 
 DATA_RAW = Path(__file__).resolve().parents[2] / "data" / "raw"
@@ -21,26 +22,37 @@ ALPHA = 0.05
 CONFIDENCE = 0.95
 FIRST_YEAR, LAST_YEAR = 1981, 2024  # period downloaded and verified
 MIN_YEARS = 10
-METHOD = "seasonal Mann-Kendall test + seasonal Sen slope"
+METHOD = "seasonal Mann-Kendall test + seasonal Sen slope, Benjamini-Hochberg correction across zones"
 
-# Sampling zones across Italy, one per climate area (docs/dati.md). Names must be lowercase
-# letters only (they are used in placeholders). Verified 2026-11-15: all 13 zones have
+# Sampling zones: the 20 regional capitals of Italy (docs/dati.md). Names must be lowercase
+# letters only (they are used in placeholders). Verified 2026-11-15: all 20 zones have
 # different NASA POWER series, i.e. no two zones share a MERRA-2 grid cell. If a zone is added
 # in the same cell as another, set "same_cell_as" so the app says their data are identical.
+def _zone(lat: float, lon: float, region: str, environment: str) -> dict:
+    return {"lat": lat, "lon": lon, "region": region, "environment": environment, "same_cell_as": None}
+
+
 ZONES = {
-    "aosta": {"lat": 45.74, "lon": 7.32, "environment": "north, western Alps, mountain valley", "same_cell_as": None},
-    "bolzano": {"lat": 46.50, "lon": 11.35, "environment": "north, eastern Alps, mountain valley", "same_cell_as": None},
-    "milano": {"lat": 45.46, "lon": 9.19, "environment": "north, Po Valley, inland plain, urban", "same_cell_as": None},
-    "venezia": {"lat": 45.44, "lon": 12.33, "environment": "north, Adriatic coast", "same_cell_as": None},
-    "genova": {"lat": 44.41, "lon": 8.93, "environment": "north, Ligurian coast", "same_cell_as": None},
-    "firenze": {"lat": 43.77, "lon": 11.25, "environment": "centre, inland hills", "same_cell_as": None},
-    "roma": {"lat": 41.90, "lon": 12.50, "environment": "centre, near the Tyrrhenian coast, urban", "same_cell_as": None},
-    "aquila": {"lat": 42.35, "lon": 13.40, "environment": "centre, L'Aquila, Apennine mountains", "same_cell_as": None},
-    "napoli": {"lat": 40.85, "lon": 14.27, "environment": "south, Tyrrhenian coast, urban", "same_cell_as": None},
-    "bari": {"lat": 41.12, "lon": 16.87, "environment": "south, Adriatic coast", "same_cell_as": None},
-    "cosenza": {"lat": 39.30, "lon": 16.25, "environment": "south, Calabria, Apennine hills", "same_cell_as": None},
-    "palermo": {"lat": 38.12, "lon": 13.36, "environment": "islands, Sicily, coast", "same_cell_as": None},
-    "cagliari": {"lat": 39.22, "lon": 9.12, "environment": "islands, Sardinia, coast", "same_cell_as": None},
+    "aosta": _zone(45.74, 7.32, "Valle d'Aosta", "north, western Alps, mountain valley"),
+    "torino": _zone(45.07, 7.69, "Piemonte", "north, foot of the western Alps, Po Valley, urban"),
+    "milano": _zone(45.46, 9.19, "Lombardia", "north, Po Valley, inland plain, urban"),
+    "trento": _zone(46.07, 11.12, "Trentino-Alto Adige", "north, eastern Alps, mountain valley"),
+    "venezia": _zone(45.44, 12.33, "Veneto", "north, Adriatic coast"),
+    "trieste": _zone(45.65, 13.78, "Friuli-Venezia Giulia", "north-east, Adriatic coast"),
+    "genova": _zone(44.41, 8.93, "Liguria", "north, Ligurian coast"),
+    "bologna": _zone(44.49, 11.34, "Emilia-Romagna", "north, Po Valley, foot of the Apennines, urban"),
+    "firenze": _zone(43.77, 11.25, "Toscana", "centre, inland hills"),
+    "perugia": _zone(43.11, 12.39, "Umbria", "centre, inland hills"),
+    "ancona": _zone(43.62, 13.52, "Marche", "centre, Adriatic coast"),
+    "roma": _zone(41.90, 12.50, "Lazio", "centre, near the Tyrrhenian coast, urban"),
+    "aquila": _zone(42.35, 13.40, "Abruzzo", "centre, L'Aquila, Apennine mountains"),
+    "campobasso": _zone(41.56, 14.66, "Molise", "south, Apennine hills"),
+    "napoli": _zone(40.85, 14.27, "Campania", "south, Tyrrhenian coast, urban"),
+    "bari": _zone(41.12, 16.87, "Puglia", "south, Adriatic coast"),
+    "potenza": _zone(40.64, 15.80, "Basilicata", "south, Apennine mountains"),
+    "catanzaro": _zone(38.91, 16.59, "Calabria", "south, between two seas, hills"),
+    "palermo": _zone(38.12, 13.36, "Sicilia", "islands, Sicily, coast"),
+    "cagliari": _zone(39.22, 9.12, "Sardegna", "islands, Sardinia, coast"),
 }
 
 VARIABLES = {
@@ -58,6 +70,45 @@ def _round_sig(x: float, digits: int = 3) -> float:
     return float(f"{x:.{digits}g}")
 
 
+def _load_series(zone: str, variable: str, start_year: int, end_year: int):
+    """Monthly series of one zone (downloads on first use, then local cache). May raise."""
+    info = ZONES[zone]
+    # Always the full verified period, cached per zone; the years are filtered here.
+    payload = fetch_power_monthly(
+        info["lat"], info["lon"], FIRST_YEAR, LAST_YEAR, DATA_RAW / f"power_monthly_{zone}.json"
+    )
+    df = parse_power_monthly(payload, zone)
+    return df[(df["variable"] == variable) & df["date"].dt.year.between(start_year, end_year)]
+
+
+def _arrays(df):
+    return (df["date"].dt.year.to_numpy(), df["date"].dt.month.to_numpy(),
+            df["value"].to_numpy(dtype=float))
+
+
+# The family of tests for the Benjamini-Hochberg correction: all zones, same variable and
+# period. Fixed, so a trend gets the same verdict whatever else the user asks about.
+_FAMILY_CACHE: dict[tuple[str, int, int], dict[str, float]] = {}
+
+
+def family_q_values(variable: str, start_year: int, end_year: int) -> dict[str, float]:
+    """Benjamini-Hochberg q-values of the seasonal Mann-Kendall test for every zone.
+
+    Zones whose data cannot be loaded or are too short are left out of the family.
+    """
+    key = (variable, start_year, end_year)
+    if key not in _FAMILY_CACHE:
+        p_values = {}
+        for zone in ZONES:
+            try:
+                p_values[zone] = seasonal_mann_kendall(*_arrays(_load_series(zone, variable, start_year, end_year))).p_value
+            except Exception:  # download error or insufficient data: not part of the family
+                continue
+        q = benjamini_hochberg(list(p_values.values()))
+        _FAMILY_CACHE[key] = dict(zip(p_values, (float(v) for v in q)))
+    return _FAMILY_CACHE[key]
+
+
 def analyze_trend(
     zone: str,
     variable: str,
@@ -68,7 +119,8 @@ def analyze_trend(
 
     Uses monthly NASA POWER data and a seasonal Mann-Kendall test (each month is compared
     only with the same month of other years), with the seasonal Sen slope and its 95%
-    confidence interval. The significance level is fixed at 0.05.
+    confidence interval. Significance is decided on the Benjamini-Hochberg q-value, which
+    corrects the p-value for testing all zones (same variable and period), at level 0.05.
 
     Args:
         zone: one of the keys of ZONES (e.g. "aosta", "milano", "napoli", "palermo").
@@ -77,7 +129,7 @@ def analyze_trend(
         end_year: last year to include, up to 2024. At least 10 years are required.
 
     Returns:
-        A dict with status "success" and the computed numbers (trend direction, p-value,
+        A dict with status "success" and the computed numbers (trend direction, p-value, q-value,
         slope per decade with confidence interval, number of observations, data source),
         or status "error" with a message explaining what to change.
     """
@@ -94,18 +146,10 @@ def analyze_trend(
 
     info = ZONES[zone]
     try:
-        # Always the full verified period, cached per zone; the years are filtered below.
-        payload = fetch_power_monthly(
-            info["lat"], info["lon"], FIRST_YEAR, LAST_YEAR, DATA_RAW / f"power_monthly_{zone}.json"
-        )
+        df = _load_series(zone, variable, start_year, end_year)
     except Exception as e:  # network errors, HTTP errors
         return _error(f"Could not download NASA POWER data: {type(e).__name__}: {e}")
-
-    df = parse_power_monthly(payload, zone)
-    df = df[(df["variable"] == variable) & df["date"].dt.year.between(start_year, end_year)]
-    years = df["date"].dt.year.to_numpy()
-    months = df["date"].dt.month.to_numpy()
-    values = df["value"].to_numpy(dtype=float)
+    years, months, values = _arrays(df)
 
     try:
         mk = seasonal_mann_kendall(years, months, values, alpha=ALPHA)
@@ -113,9 +157,16 @@ def analyze_trend(
     except InsufficientDataError as e:
         return _error(f"Insufficient data: {e}")
 
+    # Significance after the correction for multiple tests across zones (q-value).
+    family = family_q_values(variable, start_year, end_year)
+    q_value = family.get(zone, mk.p_value)
+    significant = q_value < ALPHA
+    trend = mk.trend if significant else "no trend"  # q >= p, so significant here implies mk.significant
+
     return {
         "status": "success",
         "zone": zone,
+        "region": info["region"],
         "environment": info["environment"],
         "lat": info["lat"],
         "lon": info["lon"],
@@ -126,9 +177,11 @@ def analyze_trend(
         "period": f"{start_year}-{end_year}",
         "method": METHOD,
         "alpha": ALPHA,
-        "trend": mk.trend,
-        "significant": mk.significant,
+        "trend": trend,
+        "significant": significant,
         "p_value": _round_sig(mk.p_value),
+        "q_value": _round_sig(q_value),
+        "n_tests": len(family),
         "slope_per_decade": round(sen.slope * 10, 3),
         "ci_low_per_decade": round(sen.lower * 10, 3),
         "ci_high_per_decade": round(sen.upper * 10, 3),

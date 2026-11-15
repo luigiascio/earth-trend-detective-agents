@@ -7,8 +7,9 @@ from pydantic import BaseModel, Field
 # Closed lists: the LLM can only choose among these values.
 # They must match the keys used by src/agents/tools.py.
 Zone = Literal[
-    "aosta", "bolzano", "milano", "venezia", "genova", "firenze", "roma", "aquila",
-    "napoli", "bari", "cosenza", "palermo", "cagliari",
+    "aosta", "torino", "milano", "trento", "venezia", "trieste", "genova", "bologna",
+    "firenze", "perugia", "ancona", "roma", "aquila", "campobasso", "napoli", "bari",
+    "potenza", "catanzaro", "palermo", "cagliari",
 ]
 Variable = Literal["T2M", "PRECTOTCORR"]
 
@@ -17,7 +18,7 @@ class PlanItem(BaseModel):
     """One analysis to run: a NASA POWER variable in a zone of Italy over a period."""
 
     zone: Zone = Field(
-        description="Sampling zone in Italy, named after its main town (aquila = L'Aquila)."
+        description="Regional capital of Italy used as sampling zone (aquila = L'Aquila)."
     )
     variable: Variable = Field(
         description="T2M = air temperature at 2 m (degC); PRECTOTCORR = precipitation (mm/day)."
@@ -47,8 +48,9 @@ class Plan(BaseModel):
         default="",
         description="One short sentence explaining the decision (used for logs, not shown to the user).",
     )
-    # 13 zones x 2 variables = 26 possible analyses at most.
-    items: list[PlanItem] = Field(default_factory=list, max_length=26)
+    # No max_length here: Gemini on Vertex AI rejects schemas with maxItems > 32 (400
+    # INVALID_ARGUMENT, verified 2026-11-15). The analysis node caps the plan instead.
+    items: list[PlanItem] = Field(default_factory=list)
 
 
 # Same vocabulary as the `trend` field computed by src/stats (so the guardrail can compare directly).

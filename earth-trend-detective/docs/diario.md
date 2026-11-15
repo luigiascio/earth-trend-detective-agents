@@ -277,3 +277,18 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Prova con Gemini su 6 domande, tutte verificate al primo tentativo: "Alpi più veloci della
   Sicilia" affermato correttamente (intervalli separati); nord Italia "non distinguibile";
   Torino → Milano dichiarato; Parigi → fuori ambito.
+
+### 20 capoluoghi e correzione di Benjamini-Hochberg
+- `src/stats/multiple.py`: `benjamini_hochberg` (funzione pura), 8 test, confrontata con
+  `scipy.stats.false_discovery_control`.
+- `analyze_trend` calcola il q-value su una famiglia fissa (tutte le zone, stessa variabile e
+  periodo, in cache): `significant` e `trend` dipendono dal q-value; restituisce anche
+  `p_value`, `q_value`, `n_tests`, `region`. Spiegazione e risposta di sicurezza citano il q-value.
+- Zone: i 20 capoluoghi di regione, scaricati e verificati (serie tutte diverse).
+- Problema trovato: con 40 analisi possibili lo schema del piano aveva `maxItems` 40 e Vertex AI
+  rispondeva 400 INVALID_ARGUMENT a ogni domanda. Il limite di Gemini è 32: tolto `max_length`
+  dal contratto, il tetto (40 analisi distinte) ora è nel nodo Analisi.
+- Risultato: temperatura in aumento ovunque (Bologna +0.52, Palermo +0.22 °C/decennio); pioggia
+  significativa solo a **Bologna, in calo** (q = 0.015); gli aumenti "significativi" di Bari,
+  L'Aquila e Perugia spariscono con la correzione. Prova con Gemini su 3 domande, tutte
+  verificate al primo tentativo. **115 test, tutti passano.**

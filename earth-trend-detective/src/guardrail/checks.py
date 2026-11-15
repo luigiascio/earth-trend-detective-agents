@@ -9,7 +9,7 @@ PLACEHOLDER = re.compile(r"\[([a-z]+)\.([A-Z0-9]+)\.([a-z_]+)\]")
 
 # Fields of a result that the explanation may cite as [zone.variable.field].
 PLACEHOLDER_FIELDS = (
-    "slope_per_decade", "ci_low_per_decade", "ci_high_per_decade", "p_value",
+    "slope_per_decade", "ci_low_per_decade", "ci_high_per_decade", "p_value", "q_value", "n_tests",
     "period", "unit", "mean_value", "n_months", "confidence", "alpha", "source", "method",
 )
 
@@ -33,7 +33,7 @@ def format_value(field: str, value) -> str:
         return f"{value:+.3f}"
     if field in ("ci_low_per_decade", "ci_high_per_decade"):
         return f"{value:.3f}"
-    if field == "p_value":
+    if field in ("p_value", "q_value"):
         return "< 0.001" if value < 0.001 else f"{value:.3f}"
     if field == "confidence":
         return f"{value:.0%}"

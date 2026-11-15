@@ -12,15 +12,15 @@ from src.guardrail.checks import PLACEHOLDER_FIELDS, check_explanation, fill_pla
 MODEL = "gemini-3.8-flash"  # verified on location "global", see docs/architettura.md
 
 # Built from tools.py so the prompt and the code share one source of truth.
-ZONE_LINES = "\n".join(f"- {name}: {info['environment']}" for name, info in ZONES.items())
+ZONE_LINES = "\n".join(f"- {name}: {info['region']}; {info['environment']}" for name, info in ZONES.items())
 VARIABLE_LINES = "\n".join(
     f"- {code}: {info['name']} ({info['unit']})" for code, info in VARIABLES.items()
 )
 
 # No curly braces in this text: ADK would read them as state placeholders.
 PLANNER_INSTRUCTION = f"""You are the planner of Earth Trend Detective, a system that analyses
-climate trends in Italy with NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}, in one sampling
-zone per climate area.
+climate trends in Italy with NASA POWER data from {FIRST_YEAR} to {LAST_YEAR}, in the 20
+regional capitals.
 
 Your only job is to decide which analyses answer the user's question. You never compute,
 estimate or report numbers: other parts of the system do that.
@@ -38,8 +38,8 @@ How to plan:
 - "Italy", "the whole country" or no zone named: all zones. Areas such as "the north",
   "the south", "the islands", "the Alps", "the coast", "the mountains" or "the Adriatic":
   choose the zones from their environment.
-- A place in Italy that is not a zone (e.g. Torino, Sicily, Tuscany): use the zone of the
-  same area (e.g. palermo for Sicily, firenze for Tuscany) and say so in reason.
+- A region (e.g. Sicily, Tuscany): use its capital (palermo, firenze). A town that is not a
+  zone (e.g. Verona, Catania): use the capital of its region and say so in reason.
 - Keep the default years unless the user asks for a period. "The last N years" means
   from {LAST_YEAR} - N + 1 to {LAST_YEAR}. Years outside {FIRST_YEAR}-{LAST_YEAR} are not
   available: use the closest valid years and say so in reason.
@@ -67,6 +67,9 @@ ROUTE_OK = "OK"
 ROUTE_OUT_OF_SCOPE = "OUT_OF_SCOPE"
 ROUTE_NO_DATA = "NO_DATA"
 
+# Every (zone, variable) pair once: the cap that the plan schema cannot express (see contracts.py).
+MAX_ANALYSES = len(ZONES) * len(VARIABLES)
+
 # The session state survives across questions: clear what belongs to the previous one.
 _RESET = {"guardrail_attempts": 0, "guardrail_feedback": [], "guardrail_report": None, "answer": None}
 
@@ -90,6 +93,9 @@ def analyze(plan: dict) -> Event:
     for item in plan["items"]:
         key = (item["zone"], item["variable"], item["start_year"], item["end_year"])
         if key in seen:  # the LLM may repeat an item: compute it only once
+            continue
+        if len(seen) >= MAX_ANALYSES:
+            errors.append({**item, "message": f"Not computed: at most {MAX_ANALYSES} analyses per question."})
             continue
         seen.add(key)
 
@@ -119,6 +125,9 @@ Writing numbers:
 - A slope is per decade: write e.g. "[napoli.T2M.slope_per_decade] [napoli.T2M.unit] per decade".
 
 Interpreting results (rules from docs/statistica.md):
+- Significance is decided on the q-value: the p-value corrected (Benjamini-Hochberg) for
+  testing all n_tests zones with the same variable and period. Cite the q-value, not only
+  the p-value, and say once that the result is corrected for multiple tests.
 - significant = False: say "no statistically significant trend". Never say "stable",
   "unchanged" or "not changing".
 - significant = True: state the direction and the slope with its confidence interval.
@@ -143,8 +152,9 @@ Structured fields:
 
 def _describe_result(r: dict) -> str:
     return (
-        f"- {r['zone']}.{r['variable']} ({r['variable_name']}, {r['environment']}): "
+        f"- {r['zone']}.{r['variable']} ({r['variable_name']}, {r['region']}, {r['environment']}): "
         f"trend={r['trend']}, significant={r['significant']}, p_value={r['p_value']}, "
+        f"q_value={r['q_value']} (n_tests={r['n_tests']}), "
         f"slope_per_decade={r['slope_per_decade']}, confidence interval per decade="
         f"[{r['ci_low_per_decade']}, {r['ci_high_per_decade']}] {r['unit']}, "
         f"period={r['period']}, same_grid_cell_as={r['same_grid_cell_as']}"
@@ -216,8 +226,8 @@ def _safe_sentence(r: dict) -> str:
     low = format_value("ci_low_per_decade", r["ci_low_per_decade"])
     high = format_value("ci_high_per_decade", r["ci_high_per_decade"])
     unit = format_value("unit", r["unit"])
-    p = format_value("p_value", r["p_value"])
-    numbers = f"{slope} {unit} per decade, 95% CI {low} to {high}, p-value {p}"
+    q = format_value("q_value", r["q_value"])
+    numbers = f"{slope} {unit} per decade, 95% CI {low} to {high}, q-value {q}"
     if r["significant"]:
         verdict = f"statistically significant {r['trend']} trend ({numbers})"
     else:
