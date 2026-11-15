@@ -254,3 +254,12 @@ Formato: `### AAAA-MM-GG HH:MM` seguito da punti brevi.
 - Domande consigliate: tolta quella su Roma (un esempio deve mostrare cosa il sistema sa
   fare; il rifiuto si mostra nella demo scrivendolo a mano), aggiunta "How have temperature
   and rainfall changed inland since 2000?" (provata: 6 analisi, verificata al primo tentativo).
+
+### README
+- `README.md` riscritto in inglese per giudici e pubblico: cosa fa, perché (tabella "chi fa
+  cosa"), schema del grafo, controlli del guardrail, statistica e limiti, dati con la
+  citazione NASA POWER richiesta, istruzioni di avvio (uv, ADC, `.env`), struttura, sezione
+  **Use of AI** (Gemini nel prodotto; Claude Code nello sviluppo, con cosa ha deciso
+  l'autore e come è stato verificato il codice), bibliografia e software open source.
+- `README.md` nella radice del repository che rimanda al progetto.
+- Da aggiornare dopo l'estensione all'Italia (zone e risultati).
